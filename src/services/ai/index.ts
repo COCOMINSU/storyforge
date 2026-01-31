@@ -73,6 +73,27 @@ export {
   getRecentActivity,
 } from './summaryService';
 
+// 프롬프트 템플릿
+export {
+  PROMPT_TEMPLATES,
+  getTemplate,
+  getTemplatesByCategory,
+  getAllTemplates,
+} from './promptTemplates';
+export type { PromptTemplate, PromptTemplateType } from './promptTemplates';
+
+// 프롬프트 빌더
+export {
+  buildPrompt,
+  buildSimplePrompt,
+  buildContinuePrompt,
+  buildBrainstormPrompt,
+  buildSummarizePrompt,
+  getPromptPreview,
+  getRequiredVariables,
+} from './promptBuilder';
+export type { BuiltPrompt, VariableValues } from './promptBuilder';
+
 // Re-export defaults
 export { default as claudeClient } from './claudeClient';
 export { default as contextManager } from './contextManager';

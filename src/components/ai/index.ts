@@ -23,3 +23,6 @@ export { CharacterSettingWizard } from './CharacterSettingWizard';
 // 실시간 요약
 export { RealtimeSummaryPanel } from './RealtimeSummaryPanel';
 export { CharacterStateCard } from './CharacterStateCard';
+
+// API 키 관리
+export { APIKeyModal } from './APIKeyModal';
