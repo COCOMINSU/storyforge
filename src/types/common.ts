@@ -49,6 +49,7 @@ export type ModalType =
   | 'quick-open' // 빠른 열기 (Ctrl+P)
   | 'project-search' // 프로젝트 전체 검색 (Ctrl+Shift+F)
   | 'writing-goal' // 글자수 목표 (Ctrl+Shift+O)
+  | 'ai-settings' // AI 설정 (API 키, 모델 선택)
   | null; // 모달 없음
 
 /**
