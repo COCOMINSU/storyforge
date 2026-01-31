@@ -39,6 +39,18 @@ export {
   // Constants
   DEFAULT_AI_CONFIG,
 
-  // Default export
+  // Context Manager
+  DEFAULT_CONTEXT_BUDGET,
+  truncateToTokenBudget,
+  buildProjectContext,
+  getRecentContentSummary,
+  formatContextAsSystemPrompt,
+  getBaseSystemPrompt,
+  buildFullSystemPrompt,
+  optimizeHistoryForTokenBudget,
+  calculateHistoryTokens,
+
+  // Default exports
   claudeClient,
+  contextManager,
 } from './ai';

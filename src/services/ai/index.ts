@@ -28,5 +28,28 @@ export {
   DEFAULT_AI_CONFIG,
 } from './claudeClient';
 
-// Re-export default
+// 맥락 관리 서비스
+export {
+  // Constants
+  DEFAULT_CONTEXT_BUDGET,
+
+  // Token Utilities
+  truncateToTokenBudget,
+
+  // Context Building
+  buildProjectContext,
+  getRecentContentSummary,
+
+  // System Prompt
+  formatContextAsSystemPrompt,
+  getBaseSystemPrompt,
+  buildFullSystemPrompt,
+
+  // History Optimization
+  optimizeHistoryForTokenBudget,
+  calculateHistoryTokens,
+} from './contextManager';
+
+// Re-export defaults
 export { default as claudeClient } from './claudeClient';
+export { default as contextManager } from './contextManager';
