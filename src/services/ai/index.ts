@@ -50,6 +50,22 @@ export {
   calculateHistoryTokens,
 } from './contextManager';
 
+// 줄거리 설정 프롬프트
+export {
+  PLOT_STEP_CONFIG,
+  PLOT_STEPS,
+  getPlotStepPrompt,
+  buildPlotDataFromState,
+} from './plotPrompts';
+
+// 인물 설정 프롬프트
+export {
+  CHARACTER_STEP_CONFIG,
+  CHARACTER_STEPS,
+  getCharacterStepPrompt,
+  buildCharacterCardFromState,
+} from './characterPrompts';
+
 // Re-export defaults
 export { default as claudeClient } from './claudeClient';
 export { default as contextManager } from './contextManager';

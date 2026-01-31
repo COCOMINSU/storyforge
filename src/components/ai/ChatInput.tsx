@@ -20,12 +20,14 @@ interface ChatInputProps {
   disabled?: boolean;
   /** 메시지 전송 콜백 */
   onSend: (content: string) => void;
+  /** 입력 placeholder (선택) */
+  placeholder?: string;
 }
 
 /**
  * 메시지 입력 컴포넌트
  */
-export function ChatInput({ disabled, onSend }: ChatInputProps) {
+export function ChatInput({ disabled, onSend, placeholder }: ChatInputProps) {
   const [value, setValue] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { isGenerating, cancelGeneration } = useAIStore();
@@ -65,7 +67,7 @@ export function ChatInput({ disabled, onSend }: ChatInputProps) {
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder={isGenerating ? 'AI가 응답 중...' : '메시지를 입력하세요...'}
+          placeholder={isGenerating ? 'AI가 응답 중...' : (placeholder || '메시지를 입력하세요...')}
           disabled={disabled || isGenerating}
           rows={1}
           className={cn(
