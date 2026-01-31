@@ -66,6 +66,13 @@ export {
   buildCharacterCardFromState,
 } from './characterPrompts';
 
+// 실시간 요약 서비스
+export {
+  generateRealtimeSummary,
+  calculateTotalCharCount,
+  getRecentActivity,
+} from './summaryService';
+
 // Re-export defaults
 export { default as claudeClient } from './claudeClient';
 export { default as contextManager } from './contextManager';

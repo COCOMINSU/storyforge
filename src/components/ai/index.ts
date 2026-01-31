@@ -19,3 +19,7 @@ export { PlotStepIndicator } from './PlotStepIndicator';
 
 // 인물 설정
 export { CharacterSettingWizard } from './CharacterSettingWizard';
+
+// 실시간 요약
+export { RealtimeSummaryPanel } from './RealtimeSummaryPanel';
+export { CharacterStateCard } from './CharacterStateCard';
