@@ -29,3 +29,6 @@ export { useUIStore, initializeTheme } from './useUIStore';
 
 // 인증 스토어
 export { useAuthStore } from './useAuthStore';
+
+// AI 스토어 (Phase 2)
+export { useAIStore, initializeAIStore } from './useAIStore';
