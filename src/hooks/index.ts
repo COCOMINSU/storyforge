@@ -8,3 +8,9 @@ export {
   getShortcutsByCategory,
   type ShortcutDefinition,
 } from './useKeyboardShortcuts';
+
+export {
+  useStreamingMessage,
+  type UseStreamingMessageOptions,
+  type UseStreamingMessageReturn,
+} from './useStreamingMessage';

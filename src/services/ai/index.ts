@@ -94,6 +94,38 @@ export {
 } from './promptBuilder';
 export type { BuiltPrompt, VariableValues } from './promptBuilder';
 
+// 스트리밍 핸들러
+export {
+  // Types
+  type StreamStatus,
+  type StreamSession,
+  type StreamOptions,
+  type StreamCallbacks,
+
+  // Session Management
+  createStreamSession,
+  getStreamSession,
+  updateStreamSession,
+  closeStreamSession,
+  abortStreamSession,
+  abortAllSessions,
+
+  // Classes
+  ChunkBuffer,
+  ConnectionMonitor,
+
+  // Partial Response
+  savePartialResponse,
+  loadPartialResponse,
+  clearPartialResponse,
+  cleanupOldPartialResponses,
+
+  // Utilities
+  createPartialMessage,
+  calculateStreamStats,
+} from './streamHandler';
+
 // Re-export defaults
 export { default as claudeClient } from './claudeClient';
 export { default as contextManager } from './contextManager';
+export { default as streamHandler } from './streamHandler';
