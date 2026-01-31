@@ -10,7 +10,7 @@
  * - 부분 응답 복구
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useAIStore } from '@/stores';
 import { sendMessageStream, calculateCost } from '@/services/ai/claudeClient';
 import {
@@ -96,7 +96,21 @@ const DEFAULT_OPTIONS: Required<UseStreamingMessageOptions> = {
 export function useStreamingMessage(
   options: UseStreamingMessageOptions = {}
 ): UseStreamingMessageReturn {
-  const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
+  // useMemo로 options 병합하여 불필요한 리렌더 방지
+  const mergedOptions = React.useMemo(
+    () => ({ ...DEFAULT_OPTIONS, ...options }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 개별 옵션 값만 의존
+    [
+      options.sessionId,
+      options.autoRetry,
+      options.maxRetries,
+      options.retryDelay,
+      options.chunkBufferSize,
+      options.chunkFlushInterval,
+      options.connectionTimeout,
+      options.chunkTimeout,
+    ]
+  );
 
   // 상태
   const [status, setStatus] = useState<StreamStatus>('idle');

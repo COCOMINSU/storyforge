@@ -305,7 +305,8 @@ export const useAIStore = create<AIStore>()(
 
         deleteSession: (sessionId) => {
           set((state) => {
-            const { [sessionId]: deleted, ...remaining } = state.sessions;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { [sessionId]: _, ...remaining } = state.sessions;
             return {
               sessions: remaining,
               currentSession:

@@ -62,6 +62,7 @@ export function CharacterSettingWizard({
     if (currentSession && currentSession.messages.length === 0) {
       handleSendInitialMessage();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 의도적으로 step/messages 변경 시에만 실행
   }, [currentStep, currentSession?.messages.length]);
 
   /**

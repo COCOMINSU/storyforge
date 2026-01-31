@@ -62,6 +62,7 @@ export function PlotSettingWizard({ onClose, onComplete }: PlotSettingWizardProp
       // 실제로는 시스템이 AI 역할로 초기 메시지를 추가
       handleSendInitialMessage();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 의도적으로 step/messages 변경 시에만 실행
   }, [currentStep, currentSession?.messages.length]);
 
   /**

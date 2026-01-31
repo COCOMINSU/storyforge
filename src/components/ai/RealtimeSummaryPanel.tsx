@@ -40,7 +40,7 @@ export function RealtimeSummaryPanel() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentProject?.id]);
+  }, [currentProject]);
 
   // 프로젝트 변경 시 요약 로드
   useEffect(() => {
