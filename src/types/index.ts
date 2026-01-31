@@ -52,3 +52,48 @@ export type {
   ExportOptions,
   ImportResult,
 } from './common';
+
+// AI 관련 타입 (Phase 2)
+export type {
+  // AI 설정 및 모델
+  AIModel,
+  AIConfig,
+  AIAPIConfig,
+
+  // 대화 메시지
+  MessageRole,
+  MessageStatus,
+  ChatMessage,
+  SuggestedAction,
+  ActionType,
+
+  // 대화 세션
+  ConversationType,
+  ChatSession,
+
+  // 맥락 관리
+  ProjectContext,
+  CharacterSummary,
+  ContextBudget,
+
+  // 줄거리 설정
+  PlotSettingStep,
+  PlotSettingState,
+
+  // 인물 설정
+  CharacterSettingStep,
+  CharacterSettingState,
+
+  // 실시간 요약
+  RealtimeSummary,
+
+  // 토큰 및 비용 관리
+  TokenUsage,
+  DailyUsageSummary,
+  UsageLimits,
+
+  // API 응답 타입
+  ClaudeMessageResponse,
+  ClaudeStreamEvent,
+  AIServiceError,
+} from './ai';
