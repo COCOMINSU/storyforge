@@ -15,13 +15,15 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { generateId } from '@/lib/id';
 import {
-  sendMessage as sendClaudeMessage,
+  sendMessage as sendUnifiedMessage,
   sendMessageStream,
-  loadAPIKey,
+  loadAllAPIKeys,
   saveAPIKey,
   clearAPIKey as clearStoredAPIKey,
   testConnection,
   calculateCost,
+  hasAPIKey,
+  getConfiguredProviders,
   DEFAULT_AI_CONFIG,
 } from '@/services/ai';
 import {
@@ -35,6 +37,8 @@ import type {
   ChatSession,
   ConversationType,
   AIConfig,
+  AIProvider,
+  AIAPIKeys,
   UsageLimits,
   PlotSettingState,
   CharacterSettingState,
@@ -61,8 +65,11 @@ interface AIState {
   /** AI 설정 */
   config: AIConfig;
 
-  /** API 키 설정 여부 */
+  /** API 키 설정 여부 (현재 선택된 제공자) */
   apiKeySet: boolean;
+
+  /** 제공자별 API 키 설정 여부 */
+  apiKeys: AIAPIKeys;
 
   /** 오늘 사용량 */
   todayUsage: {
@@ -123,11 +130,20 @@ interface AIActions {
   /** AI 설정 변경 */
   setConfig: (config: Partial<AIConfig>) => void;
 
-  /** API 키 설정 */
-  setAPIKey: (key: string) => Promise<boolean>;
+  /** 제공자 변경 */
+  setProvider: (provider: AIProvider) => void;
 
-  /** API 키 삭제 */
-  clearAPIKey: () => void;
+  /** API 키 설정 (특정 제공자) */
+  setAPIKey: (key: string, provider?: AIProvider) => Promise<boolean>;
+
+  /** API 키 삭제 (특정 제공자) */
+  clearAPIKey: (provider?: AIProvider) => void;
+
+  /** 제공자별 API 키 설정 여부 확인 */
+  hasProviderKey: (provider: AIProvider) => boolean;
+
+  /** 설정된 제공자 목록 */
+  getConfiguredProviders: () => AIProvider[];
 
   /** 사용량 제한 설정 */
   setUsageLimits: (limits: Partial<UsageLimits>) => void;
@@ -247,7 +263,8 @@ export const useAIStore = create<AIStore>()(
         isGenerating: false,
         streamingContent: '',
         config: DEFAULT_AI_CONFIG,
-        apiKeySet: !!loadAPIKey(),
+        apiKeySet: hasAPIKey(DEFAULT_AI_CONFIG.provider),
+        apiKeys: loadAllAPIKeys(),
         todayUsage: {
           date: getTodayDateString(),
           tokens: 0,
@@ -528,7 +545,7 @@ export const useAIStore = create<AIStore>()(
               );
             } else {
               // 일반 모드 (스트리밍 없이)
-              const result = await sendClaudeMessage(
+              const result = await sendUnifiedMessage(
                 optimizedHistory,
                 systemPrompt,
                 config
@@ -689,29 +706,56 @@ export const useAIStore = create<AIStore>()(
         // ============================================
 
         setConfig: (config) => {
-          set((state) => ({
-            config: { ...state.config, ...config },
-          }));
+          set((state) => {
+            const newConfig = { ...state.config, ...config };
+            // 제공자가 변경되면 해당 제공자의 API 키 설정 여부 업데이트
+            const apiKeySet = config.provider
+              ? hasAPIKey(config.provider)
+              : state.apiKeySet;
+            return { config: newConfig, apiKeySet };
+          });
         },
 
-        setAPIKey: async (key) => {
-          const result = await testConnection(key);
+        setProvider: (provider) => {
+          set((state) => ({
+            config: { ...state.config, provider },
+            apiKeySet: hasAPIKey(provider),
+          }));
+          console.log(`[AIStore] 제공자 변경: ${provider}`);
+        },
+
+        setAPIKey: async (key, provider) => {
+          const targetProvider = provider || get().config.provider;
+          const result = await testConnection(targetProvider, key);
 
           if (result.success) {
-            saveAPIKey(key);
-            set({ apiKeySet: true, lastError: null });
-            console.log('[AIStore] API 키 설정 완료');
+            saveAPIKey(targetProvider, key);
+            const apiKeys = loadAllAPIKeys();
+            const apiKeySet = targetProvider === get().config.provider ? true : get().apiKeySet;
+            set({ apiKeySet, apiKeys, lastError: null });
+            console.log(`[AIStore] ${targetProvider} API 키 설정 완료`);
             return true;
           } else {
-            console.error('[AIStore] API 키 검증 실패:', result.error);
+            console.error(`[AIStore] ${targetProvider} API 키 검증 실패:`, result.error);
             return false;
           }
         },
 
-        clearAPIKey: () => {
-          clearStoredAPIKey();
-          set({ apiKeySet: false });
-          console.log('[AIStore] API 키 삭제됨');
+        clearAPIKey: (provider) => {
+          const targetProvider = provider || get().config.provider;
+          clearStoredAPIKey(targetProvider);
+          const apiKeys = loadAllAPIKeys();
+          const apiKeySet = targetProvider === get().config.provider ? false : get().apiKeySet;
+          set({ apiKeySet, apiKeys });
+          console.log(`[AIStore] ${targetProvider} API 키 삭제됨`);
+        },
+
+        hasProviderKey: (provider) => {
+          return hasAPIKey(provider);
+        },
+
+        getConfiguredProviders: () => {
+          return getConfiguredProviders();
         },
 
         setUsageLimits: (limits) => {

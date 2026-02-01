@@ -1,31 +1,40 @@
 /**
  * AI 서비스 모음
  *
- * Claude AI와의 통신을 담당하는 모듈들을 export합니다.
+ * 다중 AI 제공자(Claude, GPT, Gemini)와의 통신을 담당하는 모듈들을 export합니다.
  */
 
-// Claude API 클라이언트
+// 통합 AI 클라이언트 (권장)
 export {
-  // API Key Management
+  // Provider utilities
+  getProviderFromModel,
+  PROVIDER_MODELS,
+  PROVIDER_INFO,
+
+  // API Key management (multi-provider)
   saveAPIKey,
   loadAPIKey,
+  loadAllAPIKeys,
   clearAPIKey,
   isValidAPIKey,
+  hasAPIKey,
+  getConfiguredProviders,
 
-  // Client
-  initializeClient,
-
-  // API Calls
-  sendMessage,
-  sendMessageStream,
+  // Connection
   testConnection,
 
-  // Utilities
-  calculateCost,
-  estimateTokens,
+  // Messaging (unified)
+  sendMessage,
+  sendMessageStream,
 
-  // Constants
+  // Cost
+  calculateCost,
+} from './unifiedClient';
+
+// Claude 전용 (레거시 호환성)
+export {
   DEFAULT_AI_CONFIG,
+  estimateTokens,
 } from './claudeClient';
 
 // 맥락 관리 서비스
@@ -127,5 +136,8 @@ export {
 
 // Re-export defaults
 export { default as claudeClient } from './claudeClient';
+export { default as openaiClient } from './openaiClient';
+export { default as geminiClient } from './geminiClient';
+export { default as unifiedClient } from './unifiedClient';
 export { default as contextManager } from './contextManager';
 export { default as streamHandler } from './streamHandler';

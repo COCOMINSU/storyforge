@@ -2,27 +2,50 @@
  * AI 관련 타입 정의
  *
  * Phase 2: AI 보조작가 기능
- * AI 모델: Claude (Anthropic)
+ * AI 모델: Claude (Anthropic), GPT (OpenAI), Gemini (Google)
  *
  * 이 파일은 AI 대화, 맥락 관리, 줄거리/인물 설정 등
  * AI 관련 모든 기능에 필요한 타입을 정의합니다.
  */
 
 // ============================================
-// AI 설정 및 모델
+// AI 제공자 및 모델
 // ============================================
 
 /**
- * 지원하는 Claude AI 모델
- *
- * - claude-opus-4-5: 최고 성능, 복잡한 작업에 적합 (기본)
- * - claude-sonnet-4: 균형 잡힌 성능과 비용
- * - claude-haiku-3-5: 빠른 응답, 간단한 작업에 적합
+ * 지원하는 AI 제공자
  */
-export type AIModel =
+export type AIProvider = 'anthropic' | 'openai' | 'google';
+
+/**
+ * 지원하는 Claude AI 모델
+ */
+export type ClaudeModel =
   | 'claude-opus-4-5-20251101'
   | 'claude-sonnet-4-20250514'
   | 'claude-3-5-haiku-20241022';
+
+/**
+ * 지원하는 OpenAI GPT 모델
+ */
+export type GPTModel =
+  | 'gpt-4o'
+  | 'gpt-4o-mini'
+  | 'gpt-4-turbo'
+  | 'gpt-3.5-turbo';
+
+/**
+ * 지원하는 Google Gemini 모델
+ */
+export type GeminiModel =
+  | 'gemini-2.0-flash'
+  | 'gemini-1.5-pro'
+  | 'gemini-1.5-flash';
+
+/**
+ * 모든 지원 모델
+ */
+export type AIModel = ClaudeModel | GPTModel | GeminiModel;
 
 /**
  * AI 서비스 설정
@@ -33,7 +56,10 @@ export type AIModel =
  *   - 1.0: 높은 창의성 (아이디어 발상)
  */
 export interface AIConfig {
-  /** 사용할 Claude 모델 */
+  /** AI 제공자 */
+  provider: AIProvider;
+
+  /** 사용할 AI 모델 */
   model: AIModel;
 
   /** 창의성 수준 (0.0 ~ 1.0, 기본 0.7) */
@@ -47,16 +73,27 @@ export interface AIConfig {
 }
 
 /**
- * API 키 설정
- *
- * Claude API 접속에 필요한 인증 정보입니다.
- * API 키는 환경 변수(CLAUDE_API_KEY)에서 로드됩니다.
+ * 제공자별 API 키 설정
+ */
+export interface AIAPIKeys {
+  /** Anthropic (Claude) API 키 */
+  anthropic?: string;
+
+  /** OpenAI (GPT) API 키 */
+  openai?: string;
+
+  /** Google (Gemini) API 키 */
+  google?: string;
+}
+
+/**
+ * API 키 설정 (레거시 호환성)
  */
 export interface AIAPIConfig {
-  /** AI 제공자 (현재 'anthropic'만 지원) */
-  provider: 'anthropic';
+  /** AI 제공자 */
+  provider: AIProvider;
 
-  /** Claude API 키 */
+  /** API 키 */
   apiKey: string;
 }
 

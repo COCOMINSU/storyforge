@@ -12,7 +12,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useAIStore } from '@/stores';
-import { sendMessageStream, calculateCost } from '@/services/ai/claudeClient';
+import { sendMessageStream, calculateCost } from '@/services/ai';
 import {
   createStreamSession,
   getStreamSession,

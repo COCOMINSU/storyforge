@@ -1,22 +1,14 @@
 /**
  * 대화창 헤더 컴포넌트
  *
- * 세션 정보, 모델 선택, 설정 버튼 등을 표시합니다.
+ * 세션 정보, 제공자/모델 선택, 설정 버튼 등을 표시합니다.
  */
 
 import { Settings, Trash2 } from 'lucide-react';
 import { useAIStore, useUIStore } from '@/stores';
+import { PROVIDER_MODELS, PROVIDER_INFO, getProviderFromModel } from '@/services/ai';
 import { cn } from '@/lib/cn';
-import type { AIModel } from '@/types';
-
-/**
- * 모델 표시 이름
- */
-const MODEL_LABELS: Record<AIModel, string> = {
-  'claude-opus-4-5-20251101': 'Claude Opus 4.5',
-  'claude-sonnet-4-20250514': 'Claude Sonnet 4',
-  'claude-3-5-haiku-20241022': 'Claude Haiku 3.5',
-};
+import type { AIModel, AIProvider } from '@/types';
 
 /**
  * 세션 타입 표시 이름
@@ -34,11 +26,18 @@ export function ChatHeader() {
     currentSession,
     config,
     setConfig,
+    setProvider,
     clearMessages,
     todayUsage,
     usageLimits,
+    hasProviderKey,
   } = useAIStore();
   const { openModal } = useUIStore();
+
+  // 현재 제공자
+  const currentProvider = config.provider;
+  const providerModels = PROVIDER_MODELS[currentProvider];
+  const hasKey = hasProviderKey(currentProvider);
 
   // 사용량 비율 계산
   const usageRatio = usageLimits.dailyTokenLimit
@@ -46,6 +45,34 @@ export function ChatHeader() {
     : 0;
 
   const isWarning = usageRatio >= (usageLimits.warningThreshold || 0.8);
+
+  /**
+   * 제공자 변경
+   */
+  const handleProviderChange = (provider: AIProvider) => {
+    if (!hasProviderKey(provider)) {
+      openModal('ai-settings');
+      return;
+    }
+
+    setProvider(provider);
+    // 해당 제공자의 첫 번째 모델 선택
+    const firstModel = PROVIDER_MODELS[provider][0];
+    if (firstModel) {
+      setConfig({ model: firstModel.id });
+    }
+  };
+
+  /**
+   * 모델 변경
+   */
+  const handleModelChange = (model: AIModel) => {
+    const provider = getProviderFromModel(model);
+    if (provider !== currentProvider) {
+      setProvider(provider);
+    }
+    setConfig({ model });
+  };
 
   return (
     <div className="border-b border-border">
@@ -95,34 +122,69 @@ export function ChatHeader() {
         </div>
       </div>
 
-      {/* 모델 선택 & 사용량 */}
-      <div className="px-3 pb-2 flex items-center justify-between">
-        {/* 모델 선택 */}
-        <select
-          value={config.model}
-          onChange={(e) => setConfig({ model: e.target.value as AIModel })}
-          className={cn(
-            'text-xs bg-accent rounded px-2 py-1',
-            'border-none focus:outline-none focus:ring-1 focus:ring-ring',
-            'cursor-pointer'
+      {/* 제공자 & 모델 선택 */}
+      <div className="px-3 pb-2 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {/* 제공자 선택 */}
+          <select
+            value={currentProvider}
+            onChange={(e) => handleProviderChange(e.target.value as AIProvider)}
+            className={cn(
+              'text-xs bg-accent rounded px-2 py-1',
+              'border-none focus:outline-none focus:ring-1 focus:ring-ring',
+              'cursor-pointer flex-shrink-0'
+            )}
+          >
+            {(Object.keys(PROVIDER_INFO) as AIProvider[]).map((provider) => {
+              const info = PROVIDER_INFO[provider];
+              const configured = hasProviderKey(provider);
+              return (
+                <option key={provider} value={provider}>
+                  {info.name.split(' ')[0]} {configured ? '✓' : ''}
+                </option>
+              );
+            })}
+          </select>
+
+          {/* 모델 선택 */}
+          {hasKey && (
+            <select
+              value={config.model}
+              onChange={(e) => handleModelChange(e.target.value as AIModel)}
+              className={cn(
+                'text-xs bg-accent rounded px-2 py-1',
+                'border-none focus:outline-none focus:ring-1 focus:ring-ring',
+                'cursor-pointer truncate min-w-0 flex-1'
+              )}
+            >
+              {providerModels.map((model) => (
+                <option key={model.id} value={model.id}>
+                  {model.name}
+                </option>
+              ))}
+            </select>
           )}
-        >
-          {Object.entries(MODEL_LABELS).map(([model, label]) => (
-            <option key={model} value={model}>
-              {label}
-            </option>
-          ))}
-        </select>
+
+          {/* 키 미설정 시 안내 */}
+          {!hasKey && (
+            <button
+              onClick={() => openModal('ai-settings')}
+              className="text-xs text-yellow-500 hover:text-yellow-400 truncate"
+            >
+              API 키 설정 필요
+            </button>
+          )}
+        </div>
 
         {/* 사용량 표시 */}
         <div
           className={cn(
-            'text-xs',
+            'text-xs flex-shrink-0',
             isWarning ? 'text-yellow-500' : 'text-muted-foreground'
           )}
           title={`오늘 사용량: ${todayUsage.tokens.toLocaleString()} 토큰 / $${todayUsage.cost.toFixed(4)}`}
         >
-          {Math.round(usageRatio * 100)}% 사용
+          {Math.round(usageRatio * 100)}%
         </div>
       </div>
     </div>

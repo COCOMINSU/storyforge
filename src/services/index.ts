@@ -18,14 +18,19 @@ export {
 
 // AI 서비스 (Phase 2)
 export {
-  // API Key Management
+  // Provider utilities
+  getProviderFromModel,
+  PROVIDER_MODELS,
+  PROVIDER_INFO,
+
+  // API Key Management (multi-provider)
   saveAPIKey,
   loadAPIKey,
+  loadAllAPIKeys,
   clearAPIKey,
   isValidAPIKey,
-
-  // Client
-  initializeClient,
+  hasAPIKey,
+  getConfiguredProviders,
 
   // API Calls
   sendMessage,
@@ -52,5 +57,8 @@ export {
 
   // Default exports
   claudeClient,
+  openaiClient,
+  geminiClient,
+  unifiedClient,
   contextManager,
 } from './ai';

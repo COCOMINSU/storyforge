@@ -55,9 +55,14 @@ export type {
 
 // AI 관련 타입 (Phase 2)
 export type {
-  // AI 설정 및 모델
+  // AI 제공자 및 모델
+  AIProvider,
+  ClaudeModel,
+  GPTModel,
+  GeminiModel,
   AIModel,
   AIConfig,
+  AIAPIKeys,
   AIAPIConfig,
 
   // 대화 메시지

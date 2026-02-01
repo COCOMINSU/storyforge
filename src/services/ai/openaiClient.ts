@@ -1,19 +1,19 @@
 /**
- * Claude API 클라이언트
+ * OpenAI GPT API 클라이언트
  *
- * Anthropic Claude API와 통신하는 서비스입니다.
+ * OpenAI GPT API와 통신하는 서비스입니다.
  *
  * 주요 기능:
- * - Messages API 호출
+ * - Chat Completions API 호출
  * - 스트리밍 응답 처리
  * - 에러 핸들링 및 재시도
  * - 토큰 사용량 추적
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import type {
   AIConfig,
-  ClaudeModel,
+  GPTModel,
   ChatMessage,
   AIServiceError,
 } from '@/types';
@@ -24,30 +24,20 @@ import { generateId } from '@/lib/id';
 // ============================================
 
 /**
- * Claude 모델별 토큰 비용 (USD per 1K tokens, 2025년 기준)
- * https://www.anthropic.com/pricing
+ * GPT 모델별 토큰 비용 (USD per 1K tokens, 2025년 기준)
+ * https://openai.com/pricing
  */
-const CLAUDE_TOKEN_COSTS: Record<ClaudeModel, { input: number; output: number }> = {
-  'claude-opus-4-5-20251101': { input: 0.015, output: 0.075 },
-  'claude-sonnet-4-20250514': { input: 0.003, output: 0.015 },
-  'claude-3-5-haiku-20241022': { input: 0.0008, output: 0.004 },
-};
-
-/**
- * 기본 AI 설정
- */
-export const DEFAULT_AI_CONFIG: AIConfig = {
-  provider: 'anthropic',
-  model: 'claude-opus-4-5-20251101',
-  temperature: 0.7,
-  maxTokens: 4096,
-  streamEnabled: true,
+const GPT_TOKEN_COSTS: Record<GPTModel, { input: number; output: number }> = {
+  'gpt-4o': { input: 0.0025, output: 0.01 },
+  'gpt-4o-mini': { input: 0.00015, output: 0.0006 },
+  'gpt-4-turbo': { input: 0.01, output: 0.03 },
+  'gpt-3.5-turbo': { input: 0.0005, output: 0.0015 },
 };
 
 /**
  * API 키 저장소 키
  */
-const API_KEY_STORAGE_KEY = 'storyforge-claude-api-key';
+const API_KEY_STORAGE_KEY = 'storyforge-openai-api-key';
 
 // ============================================
 // API Key Management
@@ -55,13 +45,10 @@ const API_KEY_STORAGE_KEY = 'storyforge-claude-api-key';
 
 /**
  * API 키 저장
- *
- * localStorage에 암호화 없이 저장합니다.
- * 프로덕션에서는 더 안전한 방식을 고려해야 합니다.
  */
 export function saveAPIKey(apiKey: string): void {
   localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
-  console.log('[ClaudeClient] API 키 저장됨');
+  console.log('[OpenAIClient] API 키 저장됨');
 }
 
 /**
@@ -76,50 +63,50 @@ export function loadAPIKey(): string | null {
  */
 export function clearAPIKey(): void {
   localStorage.removeItem(API_KEY_STORAGE_KEY);
-  console.log('[ClaudeClient] API 키 삭제됨');
+  console.log('[OpenAIClient] API 키 삭제됨');
 }
 
 /**
  * API 키 유효성 검증 (간단한 형식 체크)
  */
 export function isValidAPIKey(apiKey: string): boolean {
-  // Claude API 키는 'sk-ant-' 접두사로 시작
-  return apiKey.startsWith('sk-ant-') && apiKey.length > 20;
+  // OpenAI API 키는 'sk-' 접두사로 시작
+  return apiKey.startsWith('sk-') && apiKey.length > 20;
 }
 
 // ============================================
 // Client Initialization
 // ============================================
 
-let anthropicClient: Anthropic | null = null;
+let openaiClient: OpenAI | null = null;
 
 /**
- * Anthropic 클라이언트 초기화
+ * OpenAI 클라이언트 초기화
  */
-export function initializeClient(apiKey?: string): Anthropic {
+export function initializeClient(apiKey?: string): OpenAI {
   const key = apiKey || loadAPIKey();
 
   if (!key) {
-    throw createError('auth_error', 'NO_API_KEY', 'API 키가 설정되지 않았습니다.');
+    throw createError('auth_error', 'NO_API_KEY', 'OpenAI API 키가 설정되지 않았습니다.');
   }
 
-  anthropicClient = new Anthropic({
+  openaiClient = new OpenAI({
     apiKey: key,
-    dangerouslyAllowBrowser: true, // 브라우저에서 직접 호출 허용
+    dangerouslyAllowBrowser: true,
   });
 
-  console.log('[ClaudeClient] 클라이언트 초기화됨');
-  return anthropicClient;
+  console.log('[OpenAIClient] 클라이언트 초기화됨');
+  return openaiClient;
 }
 
 /**
  * 현재 클라이언트 가져오기 (없으면 초기화)
  */
-function getClient(): Anthropic {
-  if (!anthropicClient) {
+function getClient(): OpenAI {
+  if (!openaiClient) {
     return initializeClient();
   }
-  return anthropicClient;
+  return openaiClient;
 }
 
 // ============================================
@@ -148,33 +135,32 @@ function createError(
 }
 
 /**
- * Anthropic API 에러를 AIServiceError로 변환
+ * OpenAI API 에러를 AIServiceError로 변환
  */
 function handleAPIError(error: unknown): AIServiceError {
-  console.error('[ClaudeClient] API 에러:', error);
+  console.error('[OpenAIClient] API 에러:', error);
 
-  if (error instanceof Anthropic.APIError) {
+  if (error instanceof OpenAI.APIError) {
     const status = error.status;
 
     if (status === 401) {
       return createError(
         'auth_error',
         'INVALID_API_KEY',
-        'API 키가 유효하지 않습니다. 설정에서 API 키를 확인해 주세요.',
+        'OpenAI API 키가 유효하지 않습니다. 설정에서 API 키를 확인해 주세요.',
         error,
         false
       );
     }
 
     if (status === 429) {
-      const retryAfter = parseInt(error.headers?.['retry-after'] || '60', 10) * 1000;
       return createError(
         'rate_limit',
         'RATE_LIMIT_EXCEEDED',
         '요청 한도를 초과했습니다. 잠시 후 다시 시도해 주세요.',
         error,
         true,
-        retryAfter
+        60000
       );
     }
 
@@ -188,11 +174,11 @@ function handleAPIError(error: unknown): AIServiceError {
       );
     }
 
-    if (status >= 500) {
+    if (status && status >= 500) {
       return createError(
         'api_error',
         'SERVER_ERROR',
-        'Claude 서버에 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+        'OpenAI 서버에 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.',
         error,
         true,
         5000
@@ -204,7 +190,7 @@ function handleAPIError(error: unknown): AIServiceError {
       `API_ERROR_${status}`,
       error.message || 'API 호출 중 오류가 발생했습니다.',
       error,
-      status >= 500
+      status ? status >= 500 : false
     );
   }
 
@@ -235,44 +221,22 @@ function handleAPIError(error: unknown): AIServiceError {
 // ============================================
 
 /**
- * Claude 토큰 비용 계산
+ * GPT 토큰 비용 계산
  */
 export function calculateCost(
-  model: ClaudeModel,
+  model: GPTModel,
   inputTokens: number,
   outputTokens: number
 ): number {
-  const costs = CLAUDE_TOKEN_COSTS[model];
+  const costs = GPT_TOKEN_COSTS[model];
   if (!costs) {
-    console.warn('[ClaudeClient] 알 수 없는 모델:', model);
+    console.warn('[OpenAIClient] 알 수 없는 모델:', model);
     return 0;
   }
 
   const inputCost = (inputTokens / 1000) * costs.input;
   const outputCost = (outputTokens / 1000) * costs.output;
-  return Math.round((inputCost + outputCost) * 1000000) / 1000000; // 소수점 6자리
-}
-
-/**
- * 텍스트의 토큰 수 추정 (한국어 기준)
- *
- * Claude는 한국어에서 평균적으로 1토큰 ≈ 1.5자 정도입니다.
- * 정확한 토큰화는 서버에서 이루어지므로 이는 추정치입니다.
- */
-export function estimateTokens(text: string): number {
-  if (!text) return 0;
-
-  // 한국어와 영어 비율에 따라 추정
-  const koreanCharCount = (text.match(/[\uAC00-\uD7AF]/g) || []).length;
-  const englishWordCount = (text.match(/\b[a-zA-Z]+\b/g) || []).length;
-  const otherCharCount = text.length - koreanCharCount - englishWordCount;
-
-  // 한국어: ~1.5자/토큰, 영어: ~1단어/토큰, 기타: ~4자/토큰
-  const koreanTokens = koreanCharCount / 1.5;
-  const englishTokens = englishWordCount;
-  const otherTokens = otherCharCount / 4;
-
-  return Math.ceil(koreanTokens + englishTokens + otherTokens);
+  return Math.round((inputCost + outputCost) * 1000000) / 1000000;
 }
 
 // ============================================
@@ -280,18 +244,21 @@ export function estimateTokens(text: string): number {
 // ============================================
 
 /**
- * ChatMessage 배열을 Claude API 형식으로 변환
+ * ChatMessage 배열을 OpenAI API 형식으로 변환
  */
 function formatMessagesForAPI(
-  messages: ChatMessage[]
-): Array<{ role: 'user' | 'assistant'; content: string }> {
-  const formatted: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+  messages: ChatMessage[],
+  systemPrompt?: string
+): Array<{ role: 'system' | 'user' | 'assistant'; content: string }> {
+  const formatted: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [];
+
+  // 시스템 프롬프트 추가
+  if (systemPrompt) {
+    formatted.push({ role: 'system', content: systemPrompt });
+  }
 
   for (const msg of messages) {
-    // system 역할은 별도로 처리되므로 건너뜀
     if (msg.role === 'system') continue;
-
-    // 완료된 메시지만 포함
     if (msg.status !== 'complete' && msg.status !== 'streaming') continue;
 
     formatted.push({
@@ -309,8 +276,6 @@ function formatMessagesForAPI(
 
 /**
  * Chat Completion API 호출 (일반)
- *
- * 스트리밍 없이 전체 응답을 한 번에 받습니다.
  */
 export async function sendMessage(
   messages: ChatMessage[],
@@ -323,33 +288,22 @@ export async function sendMessage(
   cost: number;
 }> {
   const client = getClient();
-  const mergedConfig = { ...DEFAULT_AI_CONFIG, ...config };
+  const model = (config.model || 'gpt-4o') as GPTModel;
 
   try {
-    const formattedMessages = formatMessagesForAPI(messages);
+    const formattedMessages = formatMessagesForAPI(messages, systemPrompt);
 
-    const response = await client.messages.create({
-      model: mergedConfig.model,
-      max_tokens: mergedConfig.maxTokens,
-      temperature: mergedConfig.temperature,
-      system: systemPrompt,
+    const response = await client.chat.completions.create({
+      model,
+      max_tokens: config.maxTokens || 4096,
+      temperature: config.temperature || 0.7,
       messages: formattedMessages,
     });
 
-    // 응답에서 텍스트 추출
-    const content = response.content
-      .filter((block) => block.type === 'text')
-      .map((block) => {
-        if (block.type === 'text') {
-          return block.text;
-        }
-        return '';
-      })
-      .join('');
-
-    const inputTokens = response.usage.input_tokens;
-    const outputTokens = response.usage.output_tokens;
-    const cost = calculateCost(mergedConfig.model as ClaudeModel, inputTokens, outputTokens);
+    const content = response.choices[0]?.message?.content || '';
+    const inputTokens = response.usage?.prompt_tokens || 0;
+    const outputTokens = response.usage?.completion_tokens || 0;
+    const cost = calculateCost(model, inputTokens, outputTokens);
 
     const assistantMessage: ChatMessage = {
       id: generateId(),
@@ -358,11 +312,11 @@ export async function sendMessage(
       status: 'complete',
       timestamp: new Date(),
       tokenCount: outputTokens,
-      model: mergedConfig.model,
-      stopReason: response.stop_reason as ChatMessage['stopReason'],
+      model,
+      stopReason: response.choices[0]?.finish_reason === 'stop' ? 'end_turn' : 'max_tokens',
     };
 
-    console.log(`[ClaudeClient] 응답 완료: ${inputTokens} + ${outputTokens} tokens, $${cost.toFixed(6)}`);
+    console.log(`[OpenAIClient] 응답 완료: ${inputTokens} + ${outputTokens} tokens, $${cost.toFixed(6)}`);
 
     return {
       message: assistantMessage,
@@ -377,8 +331,6 @@ export async function sendMessage(
 
 /**
  * Chat Completion API 호출 (스트리밍)
- *
- * 실시간으로 응답을 받아 콜백으로 전달합니다.
  */
 export async function sendMessageStream(
   messages: ChatMessage[],
@@ -392,41 +344,45 @@ export async function sendMessageStream(
   }
 ): Promise<void> {
   const client = getClient();
-  const mergedConfig = { ...DEFAULT_AI_CONFIG, ...config };
+  const model = (config.model || 'gpt-4o') as GPTModel;
 
   try {
     callbacks.onStart?.();
 
-    const formattedMessages = formatMessagesForAPI(messages);
+    const formattedMessages = formatMessagesForAPI(messages, systemPrompt);
 
-    const stream = await client.messages.stream({
-      model: mergedConfig.model,
-      max_tokens: mergedConfig.maxTokens,
-      temperature: mergedConfig.temperature,
-      system: systemPrompt,
+    const stream = await client.chat.completions.create({
+      model,
+      max_tokens: config.maxTokens || 4096,
+      temperature: config.temperature || 0.7,
       messages: formattedMessages,
+      stream: true,
+      stream_options: { include_usage: true },
     });
 
     let content = '';
     let inputTokens = 0;
     let outputTokens = 0;
-    let stopReason: ChatMessage['stopReason'] = undefined;
+    let finishReason: string | null = null;
 
-    for await (const event of stream) {
-      if (event.type === 'message_start') {
-        inputTokens = event.message.usage.input_tokens;
-      } else if (event.type === 'content_block_delta') {
-        if (event.delta.type === 'text_delta') {
-          content += event.delta.text;
-          callbacks.onToken?.(event.delta.text);
-        }
-      } else if (event.type === 'message_delta') {
-        outputTokens = event.usage.output_tokens;
-        stopReason = event.delta.stop_reason as ChatMessage['stopReason'];
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta;
+      if (delta?.content) {
+        content += delta.content;
+        callbacks.onToken?.(delta.content);
+      }
+
+      if (chunk.choices[0]?.finish_reason) {
+        finishReason = chunk.choices[0].finish_reason;
+      }
+
+      if (chunk.usage) {
+        inputTokens = chunk.usage.prompt_tokens || 0;
+        outputTokens = chunk.usage.completion_tokens || 0;
       }
     }
 
-    const cost = calculateCost(mergedConfig.model as ClaudeModel, inputTokens, outputTokens);
+    const cost = calculateCost(model, inputTokens, outputTokens);
 
     const assistantMessage: ChatMessage = {
       id: generateId(),
@@ -435,11 +391,11 @@ export async function sendMessageStream(
       status: 'complete',
       timestamp: new Date(),
       tokenCount: outputTokens,
-      model: mergedConfig.model,
-      stopReason,
+      model,
+      stopReason: finishReason === 'stop' ? 'end_turn' : 'max_tokens',
     };
 
-    console.log(`[ClaudeClient] 스트리밍 완료: ${inputTokens} + ${outputTokens} tokens, $${cost.toFixed(6)}`);
+    console.log(`[OpenAIClient] 스트리밍 완료: ${inputTokens} + ${outputTokens} tokens, $${cost.toFixed(6)}`);
 
     callbacks.onComplete?.(assistantMessage, inputTokens, outputTokens);
   } catch (error) {
@@ -451,8 +407,6 @@ export async function sendMessageStream(
 
 /**
  * API 연결 테스트
- *
- * API 키가 유효한지 확인합니다.
  */
 export async function testConnection(apiKey?: string): Promise<{
   success: boolean;
@@ -460,21 +414,20 @@ export async function testConnection(apiKey?: string): Promise<{
 }> {
   try {
     const client = apiKey
-      ? new Anthropic({ apiKey, dangerouslyAllowBrowser: true })
+      ? new OpenAI({ apiKey, dangerouslyAllowBrowser: true })
       : getClient();
 
-    // 최소한의 요청으로 연결 테스트
-    await client.messages.create({
-      model: 'claude-3-5-haiku-20241022',
+    await client.chat.completions.create({
+      model: 'gpt-4o-mini',
       max_tokens: 10,
       messages: [{ role: 'user', content: 'Hi' }],
     });
 
-    console.log('[ClaudeClient] 연결 테스트 성공');
+    console.log('[OpenAIClient] 연결 테스트 성공');
     return { success: true };
   } catch (error) {
     const serviceError = handleAPIError(error);
-    console.error('[ClaudeClient] 연결 테스트 실패:', serviceError.message);
+    console.error('[OpenAIClient] 연결 테스트 실패:', serviceError.message);
     return { success: false, error: serviceError.message };
   }
 }
@@ -484,24 +437,13 @@ export async function testConnection(apiKey?: string): Promise<{
 // ============================================
 
 export default {
-  // API Key Management
   saveAPIKey,
   loadAPIKey,
   clearAPIKey,
   isValidAPIKey,
-
-  // Client
   initializeClient,
-
-  // API Calls
   sendMessage,
   sendMessageStream,
   testConnection,
-
-  // Utilities
   calculateCost,
-  estimateTokens,
-
-  // Constants
-  DEFAULT_AI_CONFIG,
 };
