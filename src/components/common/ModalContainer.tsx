@@ -80,6 +80,11 @@ const WritingGoalModal = lazy(() =>
     default: m.WritingGoalModal,
   }))
 );
+const APIKeyModal = lazy(() =>
+  import('@/components/ai/APIKeyModal').then((m) => ({
+    default: m.APIKeyModal,
+  }))
+);
 
 // 모달 타입별 컴포넌트 매핑
 const MODAL_MAP: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
@@ -97,6 +102,7 @@ const MODAL_MAP: Record<string, React.LazyExoticComponent<React.ComponentType>> 
   'quick-open': QuickOpenModal,
   'project-search': ProjectSearchModal,
   'writing-goal': WritingGoalModal,
+  'ai-settings': APIKeyModal,
 };
 
 export function ModalContainer() {
