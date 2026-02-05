@@ -137,6 +137,9 @@ interface ProjectActions {
   /** 프로젝트 닫기 */
   closeProject: () => void;
 
+  /** 현재 프로젝트 저장 (수동 저장 + 동기화) */
+  saveCurrentProject: () => Promise<void>;
+
   /** 프로젝트 업데이트 */
   updateProject: (projectId: string, updates: Partial<Project>) => Promise<void>;
 
@@ -340,6 +343,64 @@ export const useProjectStore = create<ProjectStore>()(
       // 프로젝트 닫기
       closeProject: () => {
         set({ currentProject: null });
+      },
+
+      // 현재 프로젝트 저장 (수동 저장 + 동기화)
+      saveCurrentProject: async () => {
+        const { currentProject } = get();
+        if (!currentProject) return;
+
+        try {
+          const now = new Date();
+
+          // IndexedDB에 저장 (updatedAt 갱신)
+          await db.projects.update(currentProject.id, {
+            updatedAt: now,
+          });
+
+          // 상태 업데이트
+          set((state) => ({
+            currentProject: state.currentProject
+              ? { ...state.currentProject, updatedAt: now }
+              : null,
+            projects: state.projects.map((p) =>
+              p.id === currentProject.id ? { ...p, updatedAt: now } : p
+            ),
+          }));
+
+          // Supabase 동기화 시도 (로그인된 경우)
+          try {
+            const { useAuthStore } = await import('./useAuthStore');
+            const { isAuthenticated, user, syncNow } = useAuthStore.getState();
+
+            if (isAuthenticated && user) {
+              await syncNow(currentProject.id);
+              console.log('[ProjectStore] 클라우드 동기화 완료');
+            }
+          } catch (syncError) {
+            console.warn('[ProjectStore] 클라우드 동기화 실패:', syncError);
+            // 동기화 실패해도 로컬 저장은 성공
+          }
+
+          // 토스트 알림
+          const { useUIStore } = await import('./useUIStore');
+          useUIStore.getState().addToast({
+            type: 'success',
+            message: '프로젝트가 저장되었습니다.',
+            duration: 2000,
+          });
+
+          console.log('[ProjectStore] 프로젝트 저장 완료:', currentProject.title);
+        } catch (error) {
+          console.error('[ProjectStore] 프로젝트 저장 실패:', error);
+
+          const { useUIStore } = await import('./useUIStore');
+          useUIStore.getState().addToast({
+            type: 'error',
+            message: '프로젝트 저장에 실패했습니다.',
+            duration: 3000,
+          });
+        }
       },
 
       // 프로젝트 업데이트

@@ -55,7 +55,7 @@ export type ModalType =
 /**
  * 좌측 패널 탭
  */
-export type LeftPanelTab = 'structure' | 'world' | 'settings';
+export type LeftPanelTab = 'structure' | 'world';
 
 /**
  * 테마
