@@ -1,16 +1,18 @@
 /**
- * Claude API 클라이언트
+ * Claude API 클라이언트 (with Prompt Caching)
  *
  * Anthropic Claude API와 통신하는 서비스입니다.
  *
  * 주요 기능:
  * - Messages API 호출
+ * - Prompt Caching (90% 비용 절감)
  * - 스트리밍 응답 처리
  * - 에러 핸들링 및 재시도
  * - 토큰 사용량 추적
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import type { TextBlockParam } from '@anthropic-ai/sdk/resources/messages';
 import type {
   AIConfig,
   ClaudeModel,
@@ -26,12 +28,33 @@ import { generateId } from '@/lib/id';
 /**
  * Claude 모델별 토큰 비용 (USD per 1K tokens, 2025년 11월 기준)
  * https://www.anthropic.com/pricing
+ *
+ * Prompt Caching 비용:
+ * - Cache write: 입력 비용의 25% 추가
+ * - Cache read: 입력 비용의 10% (90% 절감)
  */
-const CLAUDE_TOKEN_COSTS: Record<ClaudeModel, { input: number; output: number }> = {
-  'claude-opus-4-5-20251101': { input: 0.005, output: 0.025 },    // $5/$25 per 1M
-  'claude-sonnet-4-5-20250929': { input: 0.003, output: 0.015 },  // $3/$15 per 1M
-  'claude-haiku-4-5-20251022': { input: 0.001, output: 0.005 },   // $1/$5 per 1M
+const CLAUDE_TOKEN_COSTS: Record<ClaudeModel, { input: number; output: number; cacheWrite: number; cacheRead: number }> = {
+  'claude-opus-4-5-20251101': {
+    input: 0.015, output: 0.075,      // $15/$75 per 1M
+    cacheWrite: 0.01875,              // $15 * 1.25 = $18.75 per 1M
+    cacheRead: 0.0015,                // $15 * 0.1 = $1.5 per 1M
+  },
+  'claude-sonnet-4-5-20250929': {
+    input: 0.003, output: 0.015,      // $3/$15 per 1M
+    cacheWrite: 0.00375,              // $3 * 1.25 = $3.75 per 1M
+    cacheRead: 0.0003,                // $3 * 0.1 = $0.3 per 1M
+  },
+  'claude-haiku-4-5-20251022': {
+    input: 0.0008, output: 0.004,     // $0.8/$4 per 1M
+    cacheWrite: 0.001,                // $0.8 * 1.25 = $1 per 1M
+    cacheRead: 0.00008,               // $0.8 * 0.1 = $0.08 per 1M
+  },
 };
+
+/**
+ * 최소 캐시 토큰 수 (1024 토큰 이상이어야 캐싱 가능)
+ */
+const MIN_CACHE_TOKENS = 1024;
 
 /**
  * 기본 AI 설정 (가성비 모델로 기본 설정)
@@ -235,12 +258,20 @@ function handleAPIError(error: unknown): AIServiceError {
 // ============================================
 
 /**
- * Claude 토큰 비용 계산
+ * Claude 토큰 비용 계산 (캐시 지원)
+ *
+ * @param model - 모델 ID
+ * @param inputTokens - 입력 토큰 수
+ * @param outputTokens - 출력 토큰 수
+ * @param cacheCreationTokens - 캐시 생성에 사용된 토큰 수 (write)
+ * @param cacheReadTokens - 캐시에서 읽은 토큰 수 (read)
  */
 export function calculateCost(
   model: ClaudeModel,
   inputTokens: number,
-  outputTokens: number
+  outputTokens: number,
+  cacheCreationTokens = 0,
+  cacheReadTokens = 0
 ): number {
   const costs = CLAUDE_TOKEN_COSTS[model];
   if (!costs) {
@@ -248,9 +279,21 @@ export function calculateCost(
     return 0;
   }
 
-  const inputCost = (inputTokens / 1000) * costs.input;
+  // 일반 입력 토큰 (캐시되지 않은 토큰)
+  const normalInputTokens = inputTokens - cacheCreationTokens - cacheReadTokens;
+  const inputCost = (normalInputTokens / 1000) * costs.input;
+
+  // 캐시 생성 비용 (25% 추가)
+  const cacheWriteCost = (cacheCreationTokens / 1000) * costs.cacheWrite;
+
+  // 캐시 읽기 비용 (90% 절감)
+  const cacheReadCost = (cacheReadTokens / 1000) * costs.cacheRead;
+
+  // 출력 비용
   const outputCost = (outputTokens / 1000) * costs.output;
-  return Math.round((inputCost + outputCost) * 1000000) / 1000000; // 소수점 6자리
+
+  const totalCost = inputCost + cacheWriteCost + cacheReadCost + outputCost;
+  return Math.round(totalCost * 1000000) / 1000000; // 소수점 6자리
 }
 
 /**
@@ -308,18 +351,53 @@ function formatMessagesForAPI(
 // ============================================
 
 /**
- * Chat Completion API 호출 (일반)
+ * 시스템 프롬프트를 캐시 지원 형식으로 변환
+ *
+ * 1024 토큰 이상인 경우 cache_control 추가
+ */
+function formatSystemPromptWithCache(
+  systemPrompt: string | undefined,
+  enableCache: boolean
+): string | TextBlockParam[] | undefined {
+  if (!systemPrompt) return undefined;
+
+  // 캐시 비활성화 또는 토큰 수가 부족하면 일반 문자열 반환
+  const estimatedTokens = estimateTokens(systemPrompt);
+  if (!enableCache || estimatedTokens < MIN_CACHE_TOKENS) {
+    return systemPrompt;
+  }
+
+  // 캐시 활성화: cache_control이 포함된 블록 배열 반환
+  return [
+    {
+      type: 'text' as const,
+      text: systemPrompt,
+      cache_control: { type: 'ephemeral' as const },
+    },
+  ];
+}
+
+/**
+ * Chat Completion API 호출 (일반, 캐시 지원)
  *
  * 스트리밍 없이 전체 응답을 한 번에 받습니다.
+ *
+ * @param messages - 대화 메시지 배열
+ * @param systemPrompt - 시스템 프롬프트 (캐싱 대상)
+ * @param config - AI 설정
+ * @param enableCache - 캐시 활성화 여부 (기본: true)
  */
 export async function sendMessage(
   messages: ChatMessage[],
   systemPrompt?: string,
-  config: Partial<AIConfig> = {}
+  config: Partial<AIConfig> = {},
+  enableCache = true
 ): Promise<{
   message: ChatMessage;
   inputTokens: number;
   outputTokens: number;
+  cacheCreationTokens: number;
+  cacheReadTokens: number;
   cost: number;
 }> {
   const client = getClient();
@@ -327,12 +405,13 @@ export async function sendMessage(
 
   try {
     const formattedMessages = formatMessagesForAPI(messages);
+    const formattedSystem = formatSystemPromptWithCache(systemPrompt, enableCache);
 
     const response = await client.messages.create({
       model: mergedConfig.model,
       max_tokens: mergedConfig.maxTokens,
       temperature: mergedConfig.temperature,
-      system: systemPrompt,
+      system: formattedSystem,
       messages: formattedMessages,
     });
 
@@ -349,7 +428,18 @@ export async function sendMessage(
 
     const inputTokens = response.usage.input_tokens;
     const outputTokens = response.usage.output_tokens;
-    const cost = calculateCost(mergedConfig.model as ClaudeModel, inputTokens, outputTokens);
+
+    // 캐시 관련 토큰 (있는 경우)
+    const cacheCreationTokens = (response.usage as { cache_creation_input_tokens?: number }).cache_creation_input_tokens || 0;
+    const cacheReadTokens = (response.usage as { cache_read_input_tokens?: number }).cache_read_input_tokens || 0;
+
+    const cost = calculateCost(
+      mergedConfig.model as ClaudeModel,
+      inputTokens,
+      outputTokens,
+      cacheCreationTokens,
+      cacheReadTokens
+    );
 
     const assistantMessage: ChatMessage = {
       id: generateId(),
@@ -362,12 +452,18 @@ export async function sendMessage(
       stopReason: response.stop_reason as ChatMessage['stopReason'],
     };
 
+    // 캐시 정보 로깅
+    if (cacheCreationTokens > 0 || cacheReadTokens > 0) {
+      console.log(`[ClaudeClient] 캐시 사용: write=${cacheCreationTokens}, read=${cacheReadTokens}`);
+    }
     console.log(`[ClaudeClient] 응답 완료: ${inputTokens} + ${outputTokens} tokens, $${cost.toFixed(6)}`);
 
     return {
       message: assistantMessage,
       inputTokens,
       outputTokens,
+      cacheCreationTokens,
+      cacheReadTokens,
       cost,
     };
   } catch (error) {
@@ -376,9 +472,15 @@ export async function sendMessage(
 }
 
 /**
- * Chat Completion API 호출 (스트리밍)
+ * Chat Completion API 호출 (스트리밍, 캐시 지원)
  *
  * 실시간으로 응답을 받아 콜백으로 전달합니다.
+ *
+ * @param messages - 대화 메시지 배열
+ * @param systemPrompt - 시스템 프롬프트 (캐싱 대상)
+ * @param config - AI 설정
+ * @param callbacks - 스트리밍 콜백
+ * @param enableCache - 캐시 활성화 여부 (기본: true)
  */
 export async function sendMessageStream(
   messages: ChatMessage[],
@@ -387,9 +489,10 @@ export async function sendMessageStream(
   callbacks: {
     onStart?: () => void;
     onToken?: (token: string) => void;
-    onComplete?: (message: ChatMessage, inputTokens: number, outputTokens: number) => void;
+    onComplete?: (message: ChatMessage, inputTokens: number, outputTokens: number, cacheCreationTokens?: number, cacheReadTokens?: number) => void;
     onError?: (error: AIServiceError) => void;
-  }
+  },
+  enableCache = true
 ): Promise<void> {
   const client = getClient();
   const mergedConfig = { ...DEFAULT_AI_CONFIG, ...config };
@@ -398,23 +501,34 @@ export async function sendMessageStream(
     callbacks.onStart?.();
 
     const formattedMessages = formatMessagesForAPI(messages);
+    const formattedSystem = formatSystemPromptWithCache(systemPrompt, enableCache);
 
     const stream = await client.messages.stream({
       model: mergedConfig.model,
       max_tokens: mergedConfig.maxTokens,
       temperature: mergedConfig.temperature,
-      system: systemPrompt,
+      system: formattedSystem,
       messages: formattedMessages,
     });
 
     let content = '';
     let inputTokens = 0;
     let outputTokens = 0;
+    let cacheCreationTokens = 0;
+    let cacheReadTokens = 0;
     let stopReason: ChatMessage['stopReason'] = undefined;
 
     for await (const event of stream) {
       if (event.type === 'message_start') {
         inputTokens = event.message.usage.input_tokens;
+        // 캐시 관련 토큰 (스트리밍 시작 시)
+        const usage = event.message.usage as {
+          input_tokens: number;
+          cache_creation_input_tokens?: number;
+          cache_read_input_tokens?: number;
+        };
+        cacheCreationTokens = usage.cache_creation_input_tokens || 0;
+        cacheReadTokens = usage.cache_read_input_tokens || 0;
       } else if (event.type === 'content_block_delta') {
         if (event.delta.type === 'text_delta') {
           content += event.delta.text;
@@ -426,7 +540,13 @@ export async function sendMessageStream(
       }
     }
 
-    const cost = calculateCost(mergedConfig.model as ClaudeModel, inputTokens, outputTokens);
+    const cost = calculateCost(
+      mergedConfig.model as ClaudeModel,
+      inputTokens,
+      outputTokens,
+      cacheCreationTokens,
+      cacheReadTokens
+    );
 
     const assistantMessage: ChatMessage = {
       id: generateId(),
@@ -439,9 +559,13 @@ export async function sendMessageStream(
       stopReason,
     };
 
+    // 캐시 정보 로깅
+    if (cacheCreationTokens > 0 || cacheReadTokens > 0) {
+      console.log(`[ClaudeClient] 캐시 사용: write=${cacheCreationTokens}, read=${cacheReadTokens}`);
+    }
     console.log(`[ClaudeClient] 스트리밍 완료: ${inputTokens} + ${outputTokens} tokens, $${cost.toFixed(6)}`);
 
-    callbacks.onComplete?.(assistantMessage, inputTokens, outputTokens);
+    callbacks.onComplete?.(assistantMessage, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens);
   } catch (error) {
     const serviceError = handleAPIError(error);
     callbacks.onError?.(serviceError);

@@ -479,11 +479,18 @@ export const useAIStore = create<AIStore>()(
                       streamingContent: state.streamingContent + token,
                     }));
                   },
-                  onComplete: (message, inputTokens, outputTokens) => {
+                  onComplete: (message, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens) => {
+                    // 캐시 정보가 있으면 로깅
+                    if (cacheCreationTokens || cacheReadTokens) {
+                      console.log(`[AIStore] 캐시 사용: write=${cacheCreationTokens || 0}, read=${cacheReadTokens || 0}`);
+                    }
+
                     const cost = calculateCost(
                       config.model,
                       inputTokens,
-                      outputTokens
+                      outputTokens,
+                      cacheCreationTokens || 0,
+                      cacheReadTokens || 0
                     );
 
                     set((state) => {
@@ -807,11 +814,18 @@ export const useAIStore = create<AIStore>()(
                       streamingContent: state.streamingContent + token,
                     }));
                   },
-                  onComplete: async (message, inputTokens, outputTokens) => {
+                  onComplete: async (message, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens) => {
+                    // 캐시 정보가 있으면 로깅
+                    if (cacheCreationTokens || cacheReadTokens) {
+                      console.log(`[AIStore] 에이전트 캐시 사용: write=${cacheCreationTokens || 0}, read=${cacheReadTokens || 0}`);
+                    }
+
                     const cost = calculateCost(
                       config.model,
                       inputTokens,
-                      outputTokens
+                      outputTokens,
+                      cacheCreationTokens || 0,
+                      cacheReadTokens || 0
                     );
 
                     // 응답 파싱 (업데이트 블록 추출)

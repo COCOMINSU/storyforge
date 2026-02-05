@@ -252,8 +252,10 @@ export async function sendMessage(
 }
 
 /**
- * 통합 메시지 전송 (스트리밍)
+ * 통합 메시지 전송 (스트리밍, 캐시 지원)
  * @param projectId - Gemini 캐싱을 위한 프로젝트 ID (선택)
+ *
+ * Claude/Gemini 모두 자동으로 캐시를 사용합니다 (90% 비용 절감)
  */
 export async function sendMessageStream(
   messages: ChatMessage[],
@@ -262,7 +264,7 @@ export async function sendMessageStream(
   callbacks: {
     onStart?: () => void;
     onToken?: (token: string) => void;
-    onComplete?: (message: ChatMessage, inputTokens: number, outputTokens: number) => void;
+    onComplete?: (message: ChatMessage, inputTokens: number, outputTokens: number, cacheCreationTokens?: number, cacheReadTokens?: number) => void;
     onError?: (error: AIServiceError) => void;
   },
   projectId?: string
@@ -271,7 +273,8 @@ export async function sendMessageStream(
 
   switch (provider) {
     case 'anthropic':
-      return claudeClient.sendMessageStream(messages, systemPrompt, config, callbacks);
+      // Claude: 캐시 자동 활성화 (enableCache=true가 기본값)
+      return claudeClient.sendMessageStream(messages, systemPrompt, config, callbacks, true);
     case 'openai':
       return openaiClient.sendMessageStream(messages, systemPrompt, config, callbacks);
     case 'google':
@@ -286,18 +289,26 @@ export async function sendMessageStream(
 // ============================================
 
 /**
- * 통합 비용 계산
+ * 통합 비용 계산 (캐시 지원)
+ *
+ * @param model - 모델 ID
+ * @param inputTokens - 입력 토큰 수
+ * @param outputTokens - 출력 토큰 수
+ * @param cacheCreationTokens - 캐시 생성 토큰 수 (Claude)
+ * @param cacheReadTokens - 캐시 읽기 토큰 수 (Claude)
  */
 export function calculateCost(
   model: AIModel,
   inputTokens: number,
-  outputTokens: number
+  outputTokens: number,
+  cacheCreationTokens = 0,
+  cacheReadTokens = 0
 ): number {
   const provider = getProviderFromModel(model);
 
   switch (provider) {
     case 'anthropic':
-      return claudeClient.calculateCost(model as ClaudeModel, inputTokens, outputTokens);
+      return claudeClient.calculateCost(model as ClaudeModel, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens);
     case 'openai':
       return openaiClient.calculateCost(model as GPTModel, inputTokens, outputTokens);
     case 'google':
