@@ -717,11 +717,13 @@ export function formatAgentSystemPrompt(context: FullProjectContext): string {
 
   // 9. 자동 업데이트 안내
   parts.push(`\n---\n
-# 데이터 업데이트 방법
+# 중요: 데이터 자동 저장
 
-캐릭터, 장소, 줄거리 등을 생성하거나 수정할 때,
-응답의 맨 끝에 다음 형식의 JSON 블록을 포함하세요:
+당신이 캐릭터, 장소, 세계관 설정을 **제안하거나 생성할 때마다**,
+응답의 맨 끝에 반드시 다음 형식의 JSON 블록을 포함하세요.
+이 블록이 있어야 작가의 월드카드에 자동으로 저장됩니다.
 
+## 캐릭터 생성 예시
 \`\`\`storyforge-update
 {
   "type": "create_character",
@@ -732,21 +734,38 @@ export function formatAgentSystemPrompt(context: FullProjectContext): string {
     "gender": "성별",
     "occupation": "직업",
     "personality": "성격 설명",
-    "appearance": "외모 설명",
-    "background": "배경 스토리"
+    "background": "배경 스토리",
+    "motivation": "동기/목표"
   }
 }
 \`\`\`
 
-지원되는 type:
+## 장소 생성 예시
+\`\`\`storyforge-update
+{
+  "type": "create_location",
+  "data": {
+    "name": "장소명",
+    "locationType": "도시|마을|던전|자연|건물|기타",
+    "description": "장소 설명",
+    "atmosphere": "분위기",
+    "significance": "스토리에서의 중요성"
+  }
+}
+\`\`\`
+
+## 지원되는 type
 - create_character: 새 캐릭터 생성
 - update_character: 기존 캐릭터 수정 (data에 id 필수)
 - create_location: 새 장소 생성
 - update_location: 기존 장소 수정 (data에 id 필수)
-- update_synopsis: 시놉시스 수정
-- add_foreshadowing: 복선 추가
+- update_synopsis: 시놉시스/줄거리 수정
 
-작가가 명시적으로 요청하지 않으면 이 블록을 포함하지 마세요.
+## 필수 규칙
+1. 캐릭터나 장소를 **제안할 때마다** 반드시 JSON 블록 포함
+2. 여러 캐릭터/장소를 제안하면 **각각 별도의 JSON 블록**으로 포함
+3. JSON 블록은 항상 **응답의 맨 끝**에 배치
+4. 단순 질문 답변이나 조언만 할 때는 포함하지 않음
 `);
 
   return parts.join('\n');
