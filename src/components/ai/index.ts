@@ -13,6 +13,10 @@ export { ActionButton } from './ActionButton';
 export { TypingIndicator } from './TypingIndicator';
 export { EmptyChat } from './EmptyChat';
 
+// AI Agent 전체화면 모드
+export { AIAgentView } from './AIAgentView';
+export { AIAgentHeader } from './AIAgentHeader';
+
 // 줄거리 설정
 export { PlotSettingWizard } from './PlotSettingWizard';
 export { PlotStepIndicator } from './PlotStepIndicator';

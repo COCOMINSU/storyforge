@@ -24,14 +24,13 @@ import { generateId } from '@/lib/id';
 // ============================================
 
 /**
- * GPT 모델별 토큰 비용 (USD per 1K tokens, 2025년 기준)
+ * GPT 모델별 토큰 비용 (USD per 1K tokens, 2025년 8월 기준)
  * https://openai.com/pricing
  */
 const GPT_TOKEN_COSTS: Record<GPTModel, { input: number; output: number }> = {
-  'gpt-4o': { input: 0.0025, output: 0.01 },
-  'gpt-4o-mini': { input: 0.00015, output: 0.0006 },
-  'gpt-4-turbo': { input: 0.01, output: 0.03 },
-  'gpt-3.5-turbo': { input: 0.0005, output: 0.0015 },
+  'gpt-5': { input: 0.00125, output: 0.01 },       // $1.25/$10 per 1M
+  'gpt-5-mini': { input: 0.00025, output: 0.002 }, // $0.25/$2 per 1M
+  'gpt-5-nano': { input: 0.00005, output: 0.0004 }, // $0.05/$0.40 per 1M
 };
 
 /**
@@ -288,7 +287,7 @@ export async function sendMessage(
   cost: number;
 }> {
   const client = getClient();
-  const model = (config.model || 'gpt-4o') as GPTModel;
+  const model = (config.model || 'gpt-5-mini') as GPTModel;
 
   try {
     const formattedMessages = formatMessagesForAPI(messages, systemPrompt);
@@ -344,7 +343,7 @@ export async function sendMessageStream(
   }
 ): Promise<void> {
   const client = getClient();
-  const model = (config.model || 'gpt-4o') as GPTModel;
+  const model = (config.model || 'gpt-5-mini') as GPTModel;
 
   try {
     callbacks.onStart?.();
@@ -418,7 +417,7 @@ export async function testConnection(apiKey?: string): Promise<{
       : getClient();
 
     await client.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5-nano',
       max_tokens: 10,
       messages: [{ role: 'user', content: 'Hi' }],
     });

@@ -65,6 +65,13 @@ export type LeftPanelTab = 'structure' | 'world' | 'settings';
 export type Theme = 'dark' | 'light' | 'system';
 
 /**
+ * 앱 모드
+ *
+ * 집필 모드와 AI Agent 모드를 전환합니다.
+ */
+export type AppMode = 'writing' | 'agent';
+
+/**
  * 글자수 결과
  *
  * countCharacters() 함수의 반환 타입입니다.

@@ -13,6 +13,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { db } from '@/db';
 import { generateId } from '@/lib';
+import { getRemoteProjects, downloadProject } from '@/services/syncService';
 import type { Project, ProjectTemplate, TemplateConfig } from '@/types';
 
 /**
@@ -112,8 +113,11 @@ interface ProjectState {
 }
 
 interface ProjectActions {
-  /** 모든 프로젝트 로드 */
+  /** 모든 프로젝트 로드 (로컬) */
   loadProjects: () => Promise<void>;
+
+  /** 원격 프로젝트 로드 및 병합 (로그인 시 호출) */
+  loadRemoteProjects: () => Promise<void>;
 
   /** 새 프로젝트 생성 */
   createProject: (
@@ -169,7 +173,7 @@ export const useProjectStore = create<ProjectStore>()(
       isLoading: false,
       error: null,
 
-      // 모든 프로젝트 로드
+      // 모든 프로젝트 로드 (로컬)
       loadProjects: async () => {
         set({ isLoading: true, error: null });
 
@@ -184,6 +188,67 @@ export const useProjectStore = create<ProjectStore>()(
           console.error('[ProjectStore] 프로젝트 로드 실패:', error);
           set({
             error: '프로젝트 목록을 불러오는데 실패했습니다.',
+            isLoading: false,
+          });
+        }
+      },
+
+      // 원격 프로젝트 로드 및 병합 (로그인 시 호출)
+      loadRemoteProjects: async () => {
+        console.log('[ProjectStore] 원격 프로젝트 로드 시작...');
+        set({ isLoading: true, error: null });
+
+        try {
+          // 1. 원격 프로젝트 목록 가져오기
+          const { projects: remoteProjects, error: remoteError } = await getRemoteProjects();
+
+          if (remoteError) {
+            console.warn('[ProjectStore] 원격 프로젝트 로드 실패:', remoteError);
+            // 에러가 있어도 로컬 프로젝트는 유지
+            set({ isLoading: false });
+            return;
+          }
+
+          console.log('[ProjectStore] 원격 프로젝트 수:', remoteProjects.length);
+
+          // 2. 로컬 프로젝트 ID 목록 가져오기
+          const localProjects = await db.projects.toArray();
+          const localIds = new Set(localProjects.map(p => p.id));
+
+          // 3. 로컬에 없는 원격 프로젝트 다운로드
+          const downloadPromises: Promise<void>[] = [];
+
+          for (const remoteProject of remoteProjects) {
+            if (remoteProject.id && !localIds.has(remoteProject.id)) {
+              console.log('[ProjectStore] 새 원격 프로젝트 다운로드:', remoteProject.title);
+              downloadPromises.push(
+                downloadProject(remoteProject.id).then(result => {
+                  if (!result.success) {
+                    console.warn('[ProjectStore] 다운로드 실패:', remoteProject.title, result.error);
+                  }
+                })
+              );
+            }
+          }
+
+          // 모든 다운로드 완료 대기
+          if (downloadPromises.length > 0) {
+            await Promise.all(downloadPromises);
+            console.log('[ProjectStore] 원격 프로젝트 다운로드 완료:', downloadPromises.length);
+          }
+
+          // 4. 프로젝트 목록 새로고침
+          const allProjects = await db.projects
+            .orderBy('lastOpenedAt')
+            .reverse()
+            .toArray();
+
+          set({ projects: allProjects, isLoading: false });
+          console.log('[ProjectStore] 프로젝트 목록 갱신 완료. 총:', allProjects.length);
+        } catch (error) {
+          console.error('[ProjectStore] 원격 프로젝트 로드 실패:', error);
+          set({
+            error: '원격 프로젝트를 불러오는데 실패했습니다.',
             isLoading: false,
           });
         }

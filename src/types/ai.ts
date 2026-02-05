@@ -18,29 +18,28 @@
 export type AIProvider = 'anthropic' | 'openai' | 'google';
 
 /**
- * 지원하는 Claude AI 모델
+ * 지원하는 Claude AI 모델 (2025년 11월 기준)
  */
 export type ClaudeModel =
-  | 'claude-opus-4-5-20251101'
-  | 'claude-sonnet-4-20250514'
-  | 'claude-3-5-haiku-20241022';
+  | 'claude-opus-4-5-20251101'    // 최고 성능
+  | 'claude-sonnet-4-5-20250929'  // 가성비
+  | 'claude-haiku-4-5-20251022';  // 저렴
 
 /**
- * 지원하는 OpenAI GPT 모델
+ * 지원하는 OpenAI GPT 모델 (2025년 8월 기준)
  */
 export type GPTModel =
-  | 'gpt-4o'
-  | 'gpt-4o-mini'
-  | 'gpt-4-turbo'
-  | 'gpt-3.5-turbo';
+  | 'gpt-5'       // 최고 성능
+  | 'gpt-5-mini'  // 가성비
+  | 'gpt-5-nano'; // 저렴
 
 /**
- * 지원하는 Google Gemini 모델
+ * 지원하는 Google Gemini 모델 (2025년 말 기준)
  */
 export type GeminiModel =
-  | 'gemini-2.0-flash'
-  | 'gemini-1.5-pro'
-  | 'gemini-1.5-flash';
+  | 'gemini-3-pro'          // 최고 성능
+  | 'gemini-2.5-pro'        // 가성비
+  | 'gemini-2.5-flash-lite'; // 저렴
 
 /**
  * 모든 지원 모델
@@ -342,6 +341,152 @@ export interface ContextBudget {
 
   /** 응답 여유분 (max_tokens) */
   response: number;
+}
+
+// ============================================
+// AI Agent 전체 컨텍스트 (Phase 3)
+// ============================================
+
+/**
+ * AI Agent 모드용 전체 프로젝트 컨텍스트
+ *
+ * AI가 작품 전체를 파악하고 자동 업데이트를 수행하기 위해
+ * 필요한 모든 정보를 포함합니다.
+ */
+export interface FullProjectContext {
+  /** 프로젝트 기본 정보 */
+  projectInfo: {
+    id: string;
+    title: string;
+    description: string;
+    genre: string[];
+    targetPlatform?: string;
+    targetLength?: number;
+  };
+
+  /** 시놉시스 / 전체 줄거리 */
+  synopsis?: string;
+
+  /** 지금까지 집필된 이야기 요약 */
+  storySummary?: string;
+
+  /** 모든 캐릭터 상세 정보 */
+  allCharacters: CharacterDetailContext[];
+
+  /** 캐릭터 간 관계 */
+  characterRelationships: RelationshipContext[];
+
+  /** 모든 장소 정보 */
+  allLocations: LocationContext[];
+
+  /** 활성 복선 (미해결) */
+  activeForeshadowing: ForeshadowingContext[];
+
+  /** 최근 회차 요약 */
+  recentChapterSummaries: ChapterSummaryContext[];
+
+  /** 통계 메타데이터 */
+  metadata: {
+    totalCharCount: number;
+    totalChapterCount: number;
+    totalSceneCount: number;
+    lastUpdatedAt: Date;
+  };
+}
+
+/**
+ * 캐릭터 상세 컨텍스트
+ */
+export interface CharacterDetailContext {
+  id: string;
+  name: string;
+  role: string;
+  age?: string;
+  gender?: string;
+  occupation?: string;
+  appearance?: string;
+  personality?: string;
+  background?: string;
+  currentState?: string;
+}
+
+/**
+ * 관계 컨텍스트
+ */
+export interface RelationshipContext {
+  character1Name: string;
+  character2Name: string;
+  relationshipType: string;
+  description?: string;
+}
+
+/**
+ * 장소 컨텍스트
+ */
+export interface LocationContext {
+  id: string;
+  name: string;
+  description?: string;
+  significance?: string;
+}
+
+/**
+ * 복선 컨텍스트
+ */
+export interface ForeshadowingContext {
+  id: string;
+  description: string;
+  introducedAt: string;
+  plannedResolution?: string;
+}
+
+/**
+ * 회차 요약 컨텍스트
+ */
+export interface ChapterSummaryContext {
+  volumeNumber: number;
+  chapterNumber: number;
+  title: string;
+  summary: string;
+  keyEvents?: string[];
+}
+
+// ============================================
+// AI 응답 자동 업데이트 (Phase 4)
+// ============================================
+
+/**
+ * StoryForge 자동 업데이트 블록 타입
+ *
+ * AI 응답에 포함된 JSON 블록으로, 자동으로 데이터 업데이트를 수행합니다.
+ */
+export type StoryforgeUpdateType =
+  | 'create_character'
+  | 'update_character'
+  | 'create_location'
+  | 'update_location'
+  | 'update_synopsis'
+  | 'create_chapter_outline'
+  | 'add_foreshadowing'
+  | 'resolve_foreshadowing';
+
+/**
+ * StoryForge 자동 업데이트 블록
+ */
+export interface StoryforgeUpdate {
+  type: StoryforgeUpdateType;
+  data: Record<string, unknown>;
+}
+
+/**
+ * AI 응답 파싱 결과
+ */
+export interface ParsedAgentResponse {
+  /** 표시할 텍스트 (JSON 블록 제거됨) */
+  displayText: string;
+
+  /** 추출된 업데이트 블록들 */
+  updates: StoryforgeUpdate[];
 }
 
 // ============================================

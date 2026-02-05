@@ -45,6 +45,7 @@ export type {
   ModalType,
   LeftPanelTab,
   Theme,
+  AppMode,
   CharCountResult,
   User,
   SyncInfo,
@@ -80,6 +81,19 @@ export type {
   ProjectContext,
   CharacterSummary,
   ContextBudget,
+
+  // AI Agent 전체 컨텍스트
+  FullProjectContext,
+  CharacterDetailContext,
+  RelationshipContext,
+  LocationContext,
+  ForeshadowingContext,
+  ChapterSummaryContext,
+
+  // AI 응답 자동 업데이트
+  StoryforgeUpdateType,
+  StoryforgeUpdate,
+  ParsedAgentResponse,
 
   // 줄거리 설정
   PlotSettingStep,

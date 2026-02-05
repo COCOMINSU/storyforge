@@ -24,14 +24,25 @@ import {
   calculateCost,
   hasAPIKey,
   getConfiguredProviders,
+  getProviderFromModel,
   DEFAULT_AI_CONFIG,
+  // Gemini Caching
+  createGeminiCache,
+  refreshGeminiCache as refreshGeminiCacheApi,
+  deleteGeminiCache,
+  getGeminiCacheInfo,
+  isGeminiCacheValid,
 } from '@/services/ai';
+import type { GeminiCacheInfo } from '@/services/ai';
 import {
   buildProjectContext,
   buildFullSystemPrompt,
+  buildFullAgentContext,
+  formatAgentSystemPrompt,
   optimizeHistoryForTokenBudget,
   DEFAULT_CONTEXT_BUDGET,
 } from '@/services/ai/contextManager';
+import { parseAgentResponse, applyStoryforgeUpdates } from '@/services/ai';
 import type {
   ChatMessage,
   ChatSession,
@@ -90,6 +101,12 @@ interface AIState {
 
   /** 마지막 에러 */
   lastError: AIServiceError | null;
+
+  /** Gemini 캐시 정보 (프로젝트별) */
+  geminiCacheInfo: GeminiCacheInfo | null;
+
+  /** 캐시 초기화 중 여부 */
+  isCacheInitializing: boolean;
 }
 
 interface AIActions {
@@ -115,6 +132,12 @@ interface AIActions {
     content: string,
     projectId: string,
     sceneId?: string
+  ) => Promise<void>;
+
+  /** AI Agent 모드 메시지 전송 (전체 컨텍스트 + 자동 업데이트) */
+  sendAgentMessage: (
+    content: string,
+    projectId: string
   ) => Promise<void>;
 
   /** 생성 취소 */
@@ -176,6 +199,19 @@ interface AIActions {
 
   /** 오늘 사용량 리셋 (날짜 변경 시) */
   resetDailyUsageIfNeeded: () => void;
+
+  // Gemini 캐싱
+  /** Gemini 캐시 초기화 (AI Agent 모드 진입 시) */
+  initializeGeminiCache: (projectId: string) => Promise<void>;
+
+  /** Gemini 캐시 갱신 (프로젝트 데이터 변경 시) */
+  refreshGeminiCache: (projectId: string) => Promise<void>;
+
+  /** Gemini 캐시 삭제 */
+  clearGeminiCache: (projectId: string) => Promise<void>;
+
+  /** Gemini 캐시 상태 확인 */
+  checkGeminiCache: (projectId: string) => GeminiCacheInfo | null;
 }
 
 type AIStore = AIState & AIActions;
@@ -275,6 +311,8 @@ export const useAIStore = create<AIStore>()(
         plotSettingState: null,
         characterSettingState: null,
         lastError: null,
+        geminiCacheInfo: null,
+        isCacheInitializing: false,
 
         // ============================================
         // 세션 관리
@@ -650,6 +688,365 @@ export const useAIStore = create<AIStore>()(
           }
         },
 
+        /**
+         * AI Agent 모드 메시지 전송
+         * - 전체 프로젝트 컨텍스트 사용
+         * - 응답에서 storyforge-update 블록 자동 적용
+         */
+        sendAgentMessage: async (content, projectId) => {
+          const { currentSession, config, isGenerating } = get();
+
+          if (isGenerating) {
+            console.warn('[AIStore] 이미 생성 중입니다.');
+            return;
+          }
+
+          // 사용량 제한 체크
+          get().resetDailyUsageIfNeeded();
+          if (get().isOverUsageLimit()) {
+            const error: AIServiceError = {
+              type: 'rate_limit',
+              code: 'DAILY_LIMIT_EXCEEDED',
+              message: '일일 사용량 제한에 도달했습니다.',
+              retryable: false,
+            };
+            set({ lastError: error });
+            throw new Error(error.message);
+          }
+
+          // 사용자 메시지 생성
+          const userMessage: ChatMessage = {
+            id: generateId(),
+            role: 'user',
+            content,
+            status: 'complete',
+            timestamp: new Date(),
+          };
+
+          // AI 응답 플레이스홀더
+          const assistantMessage: ChatMessage = {
+            id: generateId(),
+            role: 'assistant',
+            content: '',
+            status: 'streaming',
+            timestamp: new Date(),
+            model: config.model,
+          };
+
+          // 세션 업데이트
+          const updatedMessages = [
+            ...(currentSession?.messages || []),
+            userMessage,
+            assistantMessage,
+          ];
+
+          set((state) => ({
+            currentSession: state.currentSession
+              ? {
+                  ...state.currentSession,
+                  messages: updatedMessages,
+                  updatedAt: new Date(),
+                }
+              : null,
+            isGenerating: true,
+            streamingContent: '',
+            lastError: null,
+          }));
+
+          try {
+            // Gemini 사용 시 캐시 확인/초기화
+            const provider = getProviderFromModel(config.model);
+            const useGeminiCache = provider === 'google';
+            let systemPrompt = '';
+
+            if (useGeminiCache) {
+              // Gemini: 캐시 사용 (캐시가 없으면 초기화)
+              if (!isGeminiCacheValid(projectId)) {
+                console.log('[AIStore] Gemini 캐시 초기화 중...');
+                await get().initializeGeminiCache(projectId);
+              } else {
+                console.log('[AIStore] 기존 Gemini 캐시 사용');
+              }
+              // 캐시 사용 시 시스템 프롬프트는 캐시에 포함됨
+              systemPrompt = '';
+            } else {
+              // Claude/GPT: 매번 컨텍스트 구축
+              console.log('[AIStore] 전체 에이전트 컨텍스트 구축 중...');
+              const fullContext = await buildFullAgentContext(projectId);
+              systemPrompt = formatAgentSystemPrompt(fullContext);
+
+              console.log('[AIStore] 에이전트 컨텍스트 구축 완료:', {
+                characters: fullContext.allCharacters.length,
+                locations: fullContext.allLocations.length,
+                relationships: fullContext.characterRelationships.length,
+              });
+            }
+
+            // 히스토리 최적화 (토큰 예산 내로)
+            const optimizedHistory = optimizeHistoryForTokenBudget(
+              updatedMessages.slice(0, -1), // assistant placeholder 제외
+              DEFAULT_CONTEXT_BUDGET.history
+            );
+
+            // 응답 처리를 위한 전체 응답 저장
+            let fullResponse = '';
+
+            if (config.streamEnabled) {
+              // 스트리밍 모드 (Gemini 캐시 사용 시 projectId 전달)
+              await sendMessageStream(
+                optimizedHistory,
+                systemPrompt || undefined,
+                config,
+                {
+                  onStart: () => {
+                    console.log('[AIStore] 에이전트 스트리밍 시작');
+                  },
+                  onToken: (token) => {
+                    fullResponse += token;
+                    set((state) => ({
+                      streamingContent: state.streamingContent + token,
+                    }));
+                  },
+                  onComplete: async (message, inputTokens, outputTokens) => {
+                    const cost = calculateCost(
+                      config.model,
+                      inputTokens,
+                      outputTokens
+                    );
+
+                    // 응답 파싱 (업데이트 블록 추출)
+                    const parsed = parseAgentResponse(message.content);
+                    console.log('[AIStore] 응답 파싱 완료:', {
+                      displayTextLength: parsed.displayText.length,
+                      updateCount: parsed.updates.length,
+                    });
+
+                    // 업데이트 블록이 있으면 자동 적용
+                    if (parsed.updates.length > 0) {
+                      console.log('[AIStore] 자동 업데이트 적용 중...');
+                      const updateResults = await applyStoryforgeUpdates(
+                        parsed.updates,
+                        projectId
+                      );
+                      console.log('[AIStore] 업데이트 결과:', updateResults);
+                    }
+
+                    set((state) => {
+                      // 완료된 메시지로 교체 (업데이트 블록 제거된 텍스트 사용)
+                      const messages = state.currentSession?.messages || [];
+                      const updatedMsgs = messages.map((m) =>
+                        m.id === assistantMessage.id
+                          ? {
+                              ...message,
+                              content: parsed.displayText, // 업데이트 블록 제거된 텍스트
+                              id: assistantMessage.id,
+                              tokenCount: outputTokens,
+                            }
+                          : m
+                      );
+
+                      // 세션 통계 업데이트
+                      const totalTokens =
+                        (state.currentSession?.stats.totalTokens || 0) +
+                        inputTokens +
+                        outputTokens;
+
+                      // 오늘 사용량 업데이트
+                      const todayUsage = {
+                        ...state.todayUsage,
+                        tokens: state.todayUsage.tokens + inputTokens + outputTokens,
+                        cost: state.todayUsage.cost + cost,
+                        requests: state.todayUsage.requests + 1,
+                      };
+
+                      return {
+                        currentSession: state.currentSession
+                          ? {
+                              ...state.currentSession,
+                              messages: updatedMsgs,
+                              stats: {
+                                messageCount: updatedMsgs.length,
+                                totalTokens,
+                                estimatedCost:
+                                  (state.currentSession.stats.estimatedCost || 0) +
+                                  cost,
+                              },
+                              updatedAt: new Date(),
+                            }
+                          : null,
+                        sessions: state.currentSession
+                          ? {
+                              ...state.sessions,
+                              [state.currentSession.id]: {
+                                ...state.currentSession,
+                                messages: updatedMsgs,
+                                stats: {
+                                  messageCount: updatedMsgs.length,
+                                  totalTokens,
+                                  estimatedCost:
+                                    (state.currentSession.stats.estimatedCost || 0) +
+                                    cost,
+                                },
+                                updatedAt: new Date(),
+                              },
+                            }
+                          : state.sessions,
+                        isGenerating: false,
+                        streamingContent: '',
+                        todayUsage,
+                      };
+                    });
+
+                    console.log(
+                      `[AIStore] 에이전트 응답 완료: ${inputTokens + outputTokens} tokens, $${cost.toFixed(6)}`
+                    );
+                  },
+                  onError: (error) => {
+                    set((state) => {
+                      const messages = state.currentSession?.messages || [];
+                      const updatedMsgs = messages.map((m) =>
+                        m.id === assistantMessage.id
+                          ? {
+                              ...m,
+                              status: 'error' as const,
+                              error: { code: error.code, message: error.message },
+                            }
+                          : m
+                      );
+
+                      return {
+                        currentSession: state.currentSession
+                          ? { ...state.currentSession, messages: updatedMsgs }
+                          : null,
+                        isGenerating: false,
+                        streamingContent: '',
+                        lastError: error,
+                      };
+                    });
+                  },
+                },
+                useGeminiCache ? projectId : undefined  // Gemini 캐시용 projectId
+              );
+            } else {
+              // 일반 모드 (스트리밍 없이)
+              const result = await sendUnifiedMessage(
+                optimizedHistory,
+                systemPrompt || undefined,
+                config,
+                useGeminiCache ? projectId : undefined  // Gemini 캐시용 projectId
+              );
+
+              // 응답 파싱
+              const parsed = parseAgentResponse(result.message.content);
+
+              // 업데이트 블록이 있으면 자동 적용
+              if (parsed.updates.length > 0) {
+                console.log('[AIStore] 자동 업데이트 적용 중...');
+                await applyStoryforgeUpdates(parsed.updates, projectId);
+              }
+
+              const cost = calculateCost(
+                config.model,
+                result.inputTokens,
+                result.outputTokens
+              );
+
+              set((state) => {
+                const messages = state.currentSession?.messages || [];
+                const updatedMsgs = messages.map((m) =>
+                  m.id === assistantMessage.id
+                    ? {
+                        ...result.message,
+                        content: parsed.displayText,
+                        id: assistantMessage.id,
+                      }
+                    : m
+                );
+
+                const totalTokens =
+                  (state.currentSession?.stats.totalTokens || 0) +
+                  result.inputTokens +
+                  result.outputTokens;
+
+                const todayUsage = {
+                  ...state.todayUsage,
+                  tokens:
+                    state.todayUsage.tokens +
+                    result.inputTokens +
+                    result.outputTokens,
+                  cost: state.todayUsage.cost + cost,
+                  requests: state.todayUsage.requests + 1,
+                };
+
+                return {
+                  currentSession: state.currentSession
+                    ? {
+                        ...state.currentSession,
+                        messages: updatedMsgs,
+                        stats: {
+                          messageCount: updatedMsgs.length,
+                          totalTokens,
+                          estimatedCost:
+                            (state.currentSession.stats.estimatedCost || 0) + cost,
+                        },
+                        updatedAt: new Date(),
+                      }
+                    : null,
+                  sessions: state.currentSession
+                    ? {
+                        ...state.sessions,
+                        [state.currentSession.id]: {
+                          ...state.currentSession,
+                          messages: updatedMsgs,
+                          stats: {
+                            messageCount: updatedMsgs.length,
+                            totalTokens,
+                            estimatedCost:
+                              (state.currentSession.stats.estimatedCost || 0) + cost,
+                          },
+                          updatedAt: new Date(),
+                        },
+                      }
+                    : state.sessions,
+                  isGenerating: false,
+                  todayUsage,
+                };
+              });
+            }
+          } catch (error) {
+            console.error('[AIStore] 에이전트 메시지 전송 실패:', error);
+
+            set((state) => {
+              const messages = state.currentSession?.messages || [];
+              const updatedMsgs = messages.map((m) =>
+                m.id === assistantMessage.id
+                  ? {
+                      ...m,
+                      status: 'error' as const,
+                      error: {
+                        code: 'UNKNOWN_ERROR',
+                        message:
+                          error instanceof Error
+                            ? error.message
+                            : '알 수 없는 오류가 발생했습니다.',
+                      },
+                    }
+                  : m
+              );
+
+              return {
+                currentSession: state.currentSession
+                  ? { ...state.currentSession, messages: updatedMsgs }
+                  : null,
+                isGenerating: false,
+                streamingContent: '',
+              };
+            });
+
+            throw error;
+          }
+        },
+
         cancelGeneration: () => {
           // 현재는 스트리밍 취소가 SDK에서 직접 지원되지 않음
           // 향후 AbortController 지원 시 구현
@@ -868,6 +1265,91 @@ export const useAIStore = create<AIStore>()(
             });
             console.log('[AIStore] 일일 사용량 리셋');
           }
+        },
+
+        // ============================================
+        // Gemini 캐싱
+        // ============================================
+
+        initializeGeminiCache: async (projectId) => {
+          const { config } = get();
+          const provider = getProviderFromModel(config.model);
+
+          // Gemini가 아니면 캐싱 불필요
+          if (provider !== 'google') {
+            console.log('[AIStore] Gemini가 아니므로 캐싱 건너뜀');
+            return;
+          }
+
+          // 이미 유효한 캐시가 있는지 확인
+          if (isGeminiCacheValid(projectId)) {
+            const existingCache = getGeminiCacheInfo(projectId);
+            set({ geminiCacheInfo: existingCache });
+            console.log('[AIStore] 기존 Gemini 캐시 사용:', existingCache?.name);
+            return;
+          }
+
+          set({ isCacheInitializing: true });
+
+          try {
+            // 전체 컨텍스트 구축
+            const fullContext = await buildFullAgentContext(projectId);
+            const systemPrompt = formatAgentSystemPrompt(fullContext);
+
+            // 캐시 생성
+            const cacheInfo = await createGeminiCache(
+              projectId,
+              systemPrompt,
+              config.model as 'gemini-2.5-pro' | 'gemini-2.5-flash-lite' | 'gemini-3-pro'
+            );
+
+            set({ geminiCacheInfo: cacheInfo, isCacheInitializing: false });
+            console.log('[AIStore] Gemini 캐시 생성 완료:', cacheInfo.name);
+          } catch (error) {
+            console.error('[AIStore] Gemini 캐시 생성 실패:', error);
+            set({ isCacheInitializing: false });
+            // 캐싱 실패해도 대화는 계속 가능 (캐시 없이 진행)
+          }
+        },
+
+        refreshGeminiCache: async (projectId) => {
+          const { config } = get();
+          const provider = getProviderFromModel(config.model);
+
+          if (provider !== 'google') return;
+
+          set({ isCacheInitializing: true });
+
+          try {
+            const fullContext = await buildFullAgentContext(projectId);
+            const systemPrompt = formatAgentSystemPrompt(fullContext);
+
+            const cacheInfo = await refreshGeminiCacheApi(
+              projectId,
+              systemPrompt,
+              config.model as 'gemini-2.5-pro' | 'gemini-2.5-flash-lite' | 'gemini-3-pro'
+            );
+
+            set({ geminiCacheInfo: cacheInfo, isCacheInitializing: false });
+            console.log('[AIStore] Gemini 캐시 갱신 완료:', cacheInfo.name);
+          } catch (error) {
+            console.error('[AIStore] Gemini 캐시 갱신 실패:', error);
+            set({ isCacheInitializing: false });
+          }
+        },
+
+        clearGeminiCache: async (projectId) => {
+          try {
+            await deleteGeminiCache(projectId);
+            set({ geminiCacheInfo: null });
+            console.log('[AIStore] Gemini 캐시 삭제 완료');
+          } catch (error) {
+            console.error('[AIStore] Gemini 캐시 삭제 실패:', error);
+          }
+        },
+
+        checkGeminiCache: (projectId) => {
+          return getGeminiCacheInfo(projectId);
         },
       }),
       {

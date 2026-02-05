@@ -18,6 +18,12 @@ import type {
   ContextBudget,
   CharacterCard,
   ChatMessage,
+  FullProjectContext,
+  CharacterDetailContext,
+  RelationshipContext,
+  LocationContext,
+  ChapterSummaryContext,
+  LocationCard,
 } from '@/types';
 import { estimateTokens } from './claudeClient';
 
@@ -455,6 +461,298 @@ export function calculateHistoryTokens(messages: ChatMessage[]): number {
 }
 
 // ============================================
+// Full Agent Context (AI Agent Mode)
+// ============================================
+
+/**
+ * AI Agent 모드용 전체 프로젝트 컨텍스트 수집
+ *
+ * 프로젝트의 모든 설정, 캐릭터, 장소, 복선 등을 수집합니다.
+ * AI가 작품 전체를 이해하고 일관된 응답을 생성할 수 있도록 합니다.
+ *
+ * @param projectId - 프로젝트 ID
+ * @returns 전체 프로젝트 컨텍스트
+ */
+export async function buildFullAgentContext(
+  projectId: string
+): Promise<FullProjectContext> {
+  // 프로젝트 정보 가져오기
+  const project = await db.projects.get(projectId);
+  if (!project) {
+    throw new Error('[ContextManager] 프로젝트를 찾을 수 없습니다.');
+  }
+
+  console.log(`[ContextManager] 전체 컨텍스트 수집 시작: ${project.title}`);
+
+  // 모든 캐릭터 가져오기
+  const characters = await db.characters
+    .where('projectId')
+    .equals(projectId)
+    .toArray();
+
+  // 모든 장소 가져오기
+  const locations = await db.locations
+    .where('projectId')
+    .equals(projectId)
+    .toArray();
+
+  // 캐릭터 상세 정보 변환
+  const allCharacters: CharacterDetailContext[] = characters.map((char: CharacterCard) => {
+    // 외모 정보를 문자열로 결합
+    const appearanceParts: string[] = [];
+    if (char.appearance.height) appearanceParts.push(`키: ${char.appearance.height}`);
+    if (char.appearance.bodyType) appearanceParts.push(`체형: ${char.appearance.bodyType}`);
+    if (char.appearance.hairColor) appearanceParts.push(`머리색: ${char.appearance.hairColor}`);
+    if (char.appearance.eyeColor) appearanceParts.push(`눈색: ${char.appearance.eyeColor}`);
+    if (char.appearance.distinguishingFeatures) appearanceParts.push(char.appearance.distinguishingFeatures);
+
+    return {
+      id: char.id,
+      name: char.name,
+      role: ROLE_LABELS[char.role] || char.role,
+      age: char.basicInfo.age,
+      gender: char.basicInfo.gender,
+      occupation: char.basicInfo.occupation,
+      appearance: appearanceParts.length > 0 ? appearanceParts.join(', ').slice(0, 200) : undefined,
+      personality: char.personality?.slice(0, 200),
+      background: char.background?.slice(0, 200),
+    };
+  });
+
+  // 관계 정보 수집
+  const characterRelationships: RelationshipContext[] = [];
+  for (const char of characters) {
+    if (char.relationships) {
+      for (const rel of char.relationships) {
+        // 중복 방지 (A→B와 B→A 모두 있을 수 있음)
+        const exists = characterRelationships.some(
+          (r) =>
+            (r.character1Name === char.name && r.character2Name === rel.targetName) ||
+            (r.character1Name === rel.targetName && r.character2Name === char.name)
+        );
+        if (!exists) {
+          characterRelationships.push({
+            character1Name: char.name,
+            character2Name: rel.targetName,
+            relationshipType: rel.relationType,
+            description: rel.description,
+          });
+        }
+      }
+    }
+  }
+
+  // 장소 정보 변환
+  const allLocations: LocationContext[] = locations.map((loc: LocationCard) => ({
+    id: loc.id,
+    name: loc.name,
+    description: loc.description?.slice(0, 200),
+    significance: loc.significance?.slice(0, 100),
+  }));
+
+  // 최근 회차 요약 수집 (최근 5개 챕터)
+  const recentChapterSummaries: ChapterSummaryContext[] = [];
+  const chapters = await db.chapters
+    .where('projectId')
+    .equals(projectId)
+    .reverse()
+    .sortBy('updatedAt');
+
+  for (const chapter of chapters.slice(0, 5)) {
+    const volume = await db.volumes.get(chapter.volumeId);
+    // 챕터의 첫 씬 내용을 요약으로 사용
+    const chapterScenes = await db.scenes
+      .where('chapterId')
+      .equals(chapter.id)
+      .sortBy('order');
+
+    const firstScene = chapterScenes[0];
+    if (firstScene?.plainText) {
+      recentChapterSummaries.push({
+        volumeNumber: volume?.order || 1,
+        chapterNumber: chapter.order,
+        title: chapter.title,
+        summary: firstScene.plainText.slice(0, 300) + (firstScene.plainText.length > 300 ? '...' : ''),
+      });
+    }
+  }
+
+  // 통계 계산
+  const scenes = await db.scenes
+    .where('projectId')
+    .equals(projectId)
+    .toArray();
+
+  const totalCharCount = scenes.reduce(
+    (sum, scene) => sum + (scene.plainText?.length || 0),
+    0
+  );
+
+  const context: FullProjectContext = {
+    projectInfo: {
+      id: project.id,
+      title: project.title,
+      description: project.description,
+      genre: project.genre,
+      targetPlatform: project.targetPlatform,
+      targetLength: project.targetLength,
+    },
+    // synopsis는 현재 Project 타입에 없으므로 description을 활용
+    synopsis: project.description || undefined,
+    allCharacters,
+    characterRelationships,
+    allLocations,
+    activeForeshadowing: [], // TODO: 복선 시스템 구현 후 연동
+    recentChapterSummaries,
+    metadata: {
+      totalCharCount,
+      totalChapterCount: chapters.length,
+      totalSceneCount: scenes.length,
+      lastUpdatedAt: new Date(),
+    },
+  };
+
+  console.log(
+    `[ContextManager] 전체 컨텍스트 수집 완료: ` +
+    `캐릭터 ${allCharacters.length}, 장소 ${allLocations.length}, ` +
+    `관계 ${characterRelationships.length}, 회차요약 ${recentChapterSummaries.length}`
+  );
+
+  return context;
+}
+
+/**
+ * AI Agent 모드용 시스템 프롬프트 생성
+ *
+ * 전체 컨텍스트를 기반으로 AI가 작품을 완전히 이해하고
+ * 자동 업데이트까지 수행할 수 있는 시스템 프롬프트를 생성합니다.
+ *
+ * @param context - 전체 프로젝트 컨텍스트
+ * @returns 시스템 프롬프트 문자열
+ */
+export function formatAgentSystemPrompt(context: FullProjectContext): string {
+  const parts: string[] = [];
+
+  // 1. AI 역할 정의
+  parts.push(`당신은 웹소설 "${context.projectInfo.title}"의 전담 AI 창작 보조입니다.
+
+## 역할
+- 작가의 모든 창작 활동을 지원합니다.
+- 작품의 설정과 맥락을 완전히 이해하고 일관성을 유지합니다.
+- 캐릭터, 장소, 복선 등을 직접 생성/수정할 수 있습니다.
+- 제안은 구체적이고 작품 세계관에 맞게 합니다.
+
+## 응답 방식
+- 한국어로 자연스럽게 대화합니다.
+- 데이터를 생성하거나 수정할 때는 응답 끝에 특별한 JSON 블록을 포함합니다.
+- 기존 설정과 모순되지 않도록 주의합니다.`);
+
+  // 2. 작품 정보
+  parts.push('\n---\n');
+  parts.push('# 작품 정보');
+  parts.push(`- 제목: ${context.projectInfo.title}`);
+  if (context.projectInfo.description) {
+    parts.push(`- 설명: ${context.projectInfo.description}`);
+  }
+  if (context.projectInfo.genre.length > 0) {
+    parts.push(`- 장르: ${context.projectInfo.genre.join(', ')}`);
+  }
+  if (context.projectInfo.targetPlatform) {
+    parts.push(`- 연재 플랫폼: ${context.projectInfo.targetPlatform}`);
+  }
+
+  // 3. 시놉시스
+  if (context.synopsis) {
+    parts.push('\n# 줄거리 (시놉시스)');
+    parts.push(context.synopsis);
+  }
+
+  // 4. 등장인물 전체 목록
+  if (context.allCharacters.length > 0) {
+    parts.push('\n# 등장인물');
+    for (const char of context.allCharacters) {
+      const info: string[] = [];
+      if (char.age) info.push(char.age);
+      if (char.gender) info.push(char.gender);
+      if (char.occupation) info.push(char.occupation);
+
+      parts.push(`\n## ${char.name} (${char.role})`);
+      if (info.length > 0) parts.push(`기본: ${info.join(', ')}`);
+      if (char.personality) parts.push(`성격: ${char.personality}`);
+      if (char.appearance) parts.push(`외모: ${char.appearance}`);
+      if (char.background) parts.push(`배경: ${char.background}`);
+    }
+  }
+
+  // 5. 인물 관계도
+  if (context.characterRelationships.length > 0) {
+    parts.push('\n# 인물 관계');
+    for (const rel of context.characterRelationships) {
+      parts.push(`- ${rel.character1Name} ↔ ${rel.character2Name}: ${rel.relationshipType}`);
+      if (rel.description) parts.push(`  (${rel.description})`);
+    }
+  }
+
+  // 6. 주요 장소
+  if (context.allLocations.length > 0) {
+    parts.push('\n# 주요 장소');
+    for (const loc of context.allLocations) {
+      parts.push(`- **${loc.name}**: ${loc.description || '설명 없음'}`);
+    }
+  }
+
+  // 7. 최근 회차 요약
+  if (context.recentChapterSummaries.length > 0) {
+    parts.push('\n# 최근 회차 요약');
+    for (const ch of context.recentChapterSummaries) {
+      parts.push(`\n## ${ch.chapterNumber}화: ${ch.title}`);
+      parts.push(ch.summary);
+    }
+  }
+
+  // 8. 통계
+  parts.push('\n# 작품 통계');
+  parts.push(`- 총 글자수: ${context.metadata.totalCharCount.toLocaleString()}자`);
+  parts.push(`- 총 회차: ${context.metadata.totalChapterCount}화`);
+
+  // 9. 자동 업데이트 안내
+  parts.push(`\n---\n
+# 데이터 업데이트 방법
+
+캐릭터, 장소, 줄거리 등을 생성하거나 수정할 때,
+응답의 맨 끝에 다음 형식의 JSON 블록을 포함하세요:
+
+\`\`\`storyforge-update
+{
+  "type": "create_character",
+  "data": {
+    "name": "이름",
+    "role": "protagonist|antagonist|supporting|minor",
+    "age": "나이",
+    "gender": "성별",
+    "occupation": "직업",
+    "personality": "성격 설명",
+    "appearance": "외모 설명",
+    "background": "배경 스토리"
+  }
+}
+\`\`\`
+
+지원되는 type:
+- create_character: 새 캐릭터 생성
+- update_character: 기존 캐릭터 수정 (data에 id 필수)
+- create_location: 새 장소 생성
+- update_location: 기존 장소 수정 (data에 id 필수)
+- update_synopsis: 시놉시스 수정
+- add_foreshadowing: 복선 추가
+
+작가가 명시적으로 요청하지 않으면 이 블록을 포함하지 마세요.
+`);
+
+  return parts.join('\n');
+}
+
+// ============================================
 // Exports
 // ============================================
 
@@ -477,4 +775,8 @@ export default {
   // History Optimization
   optimizeHistoryForTokenBudget,
   calculateHistoryTokens,
+
+  // AI Agent Mode
+  buildFullAgentContext,
+  formatAgentSystemPrompt,
 };

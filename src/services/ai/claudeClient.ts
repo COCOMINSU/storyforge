@@ -24,23 +24,23 @@ import { generateId } from '@/lib/id';
 // ============================================
 
 /**
- * Claude 모델별 토큰 비용 (USD per 1K tokens, 2025년 기준)
+ * Claude 모델별 토큰 비용 (USD per 1K tokens, 2025년 11월 기준)
  * https://www.anthropic.com/pricing
  */
 const CLAUDE_TOKEN_COSTS: Record<ClaudeModel, { input: number; output: number }> = {
-  'claude-opus-4-5-20251101': { input: 0.015, output: 0.075 },
-  'claude-sonnet-4-20250514': { input: 0.003, output: 0.015 },
-  'claude-3-5-haiku-20241022': { input: 0.0008, output: 0.004 },
+  'claude-opus-4-5-20251101': { input: 0.005, output: 0.025 },    // $5/$25 per 1M
+  'claude-sonnet-4-5-20250929': { input: 0.003, output: 0.015 },  // $3/$15 per 1M
+  'claude-haiku-4-5-20251022': { input: 0.001, output: 0.005 },   // $1/$5 per 1M
 };
 
 /**
- * 기본 AI 설정
+ * 기본 AI 설정 (가성비 모델로 기본 설정)
  */
 export const DEFAULT_AI_CONFIG: AIConfig = {
   provider: 'anthropic',
-  model: 'claude-opus-4-5-20251101',
+  model: 'claude-sonnet-4-5-20250929',
   temperature: 0.7,
-  maxTokens: 4096,
+  maxTokens: 16384,
   streamEnabled: true,
 };
 
@@ -463,9 +463,9 @@ export async function testConnection(apiKey?: string): Promise<{
       ? new Anthropic({ apiKey, dangerouslyAllowBrowser: true })
       : getClient();
 
-    // 최소한의 요청으로 연결 테스트
+    // 최소한의 요청으로 연결 테스트 (가장 저렴한 모델 사용)
     await client.messages.create({
-      model: 'claude-3-5-haiku-20241022',
+      model: 'claude-haiku-4-5-20251022',
       max_tokens: 10,
       messages: [{ role: 'user', content: 'Hi' }],
     });

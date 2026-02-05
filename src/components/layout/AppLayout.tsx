@@ -1,26 +1,24 @@
 /**
  * 앱 메인 레이아웃
  *
- * 3컬럼 구조:
- * - 좌측 패널: 문서 구조/설정 (리사이즈 가능)
- * - 중앙: 에디터
- * - 우측 패널: AI 어시스턴트 (추후 구현)
+ * 2가지 모드:
+ * - 집필 모드: 좌측 패널 + 에디터
+ * - AI Agent 모드: 좌측 패널 + AI 전체화면 채팅
  */
 
 import { useState, useEffect } from 'react';
 import { useUIStore } from '@/stores';
 import { LeftPanel } from './LeftPanel';
 import { EditorPane } from './EditorPane';
-import { RightPanel } from './RightPanel';
 import { StatusBar } from './StatusBar';
+import { AIAgentView } from '@/components/ai';
 import { formatShortcut } from '@/lib';
 
 export function AppLayout() {
   const {
+    appMode,
     isLeftPanelOpen,
     leftPanelWidth,
-    isRightPanelOpen,
-    rightPanelWidth,
     isFocusMode,
   } = useUIStore();
 
@@ -49,20 +47,10 @@ export function AppLayout() {
           </aside>
         )}
 
-        {/* 에디터 영역 */}
+        {/* 메인 영역: 모드에 따라 에디터 또는 AI Agent */}
         <main className="flex-1 overflow-hidden">
-          <EditorPane />
+          {appMode === 'writing' ? <EditorPane /> : <AIAgentView />}
         </main>
-
-        {/* 우측 패널 (AI) */}
-        {!isFocusMode && isRightPanelOpen && (
-          <aside
-            className="flex-shrink-0 border-l border-border bg-sidebar"
-            style={{ width: rightPanelWidth }}
-          >
-            <RightPanel />
-          </aside>
-        )}
       </div>
 
       {/* 상태바 */}

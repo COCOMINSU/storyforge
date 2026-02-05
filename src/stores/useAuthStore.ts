@@ -155,7 +155,7 @@ export const useAuthStore = create<AuthStore>()(
 
           // Auth 상태 변경 리스너 등록
           supabase.auth.onAuthStateChange(
-            (event: AuthChangeEvent, session: Session | null) => {
+            async (event: AuthChangeEvent, session: Session | null) => {
               console.log('[AuthStore] Auth 상태 변경:', event);
 
               const user = sessionToUser(session);
@@ -168,6 +168,17 @@ export const useAuthStore = create<AuthStore>()(
                   status: user ? 'synced' : 'offline',
                 },
               });
+
+              // 로그인 시 원격 프로젝트 로드
+              if (user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+                console.log('[AuthStore] 로그인 감지 - 원격 프로젝트 로드 시작');
+                try {
+                  const { useProjectStore } = await import('./useProjectStore');
+                  await useProjectStore.getState().loadRemoteProjects();
+                } catch (error) {
+                  console.error('[AuthStore] 원격 프로젝트 로드 실패:', error);
+                }
+              }
             }
           );
 
@@ -181,6 +192,17 @@ export const useAuthStore = create<AuthStore>()(
               status: user ? 'synced' : 'offline',
             },
           });
+
+          // 이미 로그인된 상태면 원격 프로젝트 로드
+          if (user) {
+            console.log('[AuthStore] 기존 세션 감지 - 원격 프로젝트 로드 시작');
+            try {
+              const { useProjectStore } = await import('./useProjectStore');
+              await useProjectStore.getState().loadRemoteProjects();
+            } catch (error) {
+              console.error('[AuthStore] 원격 프로젝트 로드 실패:', error);
+            }
+          }
         } catch (error) {
           console.error('[AuthStore] 초기화 실패:', error);
           set({

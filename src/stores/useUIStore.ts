@@ -12,7 +12,7 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import type { ModalType, LeftPanelTab, Theme } from '@/types';
+import type { ModalType, LeftPanelTab, Theme, AppMode } from '@/types';
 
 interface ToastMessage {
   id: string;
@@ -22,6 +22,9 @@ interface ToastMessage {
 }
 
 interface UIState {
+  /** 앱 모드 (집필 / AI Agent) */
+  appMode: AppMode;
+
   /** 좌측 패널 열림 상태 */
   isLeftPanelOpen: boolean;
 
@@ -57,6 +60,12 @@ interface UIState {
 }
 
 interface UIActions {
+  /** 앱 모드 설정 */
+  setAppMode: (mode: AppMode) => void;
+
+  /** 앱 모드 토글 */
+  toggleAppMode: () => void;
+
   /** 좌측 패널 토글 */
   toggleLeftPanel: () => void;
 
@@ -129,6 +138,7 @@ export const useUIStore = create<UIStore>()(
     persist(
       (set, get) => ({
         // 초기 상태
+        appMode: 'writing',
         isLeftPanelOpen: true,
         leftPanelTab: 'structure',
         leftPanelWidth: PANEL_DEFAULT_WIDTH,
@@ -140,6 +150,17 @@ export const useUIStore = create<UIStore>()(
         toasts: [],
         isFullscreen: false,
         isFocusMode: false,
+
+        // 앱 모드
+        setAppMode: (mode) => {
+          set({ appMode: mode });
+        },
+
+        toggleAppMode: () => {
+          set((state) => ({
+            appMode: state.appMode === 'writing' ? 'agent' : 'writing',
+          }));
+        },
 
         // 좌측 패널
         toggleLeftPanel: () => {
@@ -263,6 +284,7 @@ export const useUIStore = create<UIStore>()(
         name: 'storyforge-ui',
         // 저장할 상태 선택
         partialize: (state) => ({
+          appMode: state.appMode,
           isLeftPanelOpen: state.isLeftPanelOpen,
           leftPanelTab: state.leftPanelTab,
           leftPanelWidth: state.leftPanelWidth,

@@ -29,7 +29,16 @@ export {
 
   // Cost
   calculateCost,
+
+  // Gemini Context Caching (90% 비용 절감)
+  createGeminiCache,
+  refreshGeminiCache,
+  deleteGeminiCache,
+  getGeminiCacheInfo,
+  isGeminiCacheValid,
+  calculateGeminiSavings,
 } from './unifiedClient';
+export type { GeminiCacheInfo } from './unifiedClient';
 
 // Claude 전용 (레거시 호환성)
 export {
@@ -57,6 +66,10 @@ export {
   // History Optimization
   optimizeHistoryForTokenBudget,
   calculateHistoryTokens,
+
+  // AI Agent Mode
+  buildFullAgentContext,
+  formatAgentSystemPrompt,
 } from './contextManager';
 
 // 줄거리 설정 프롬프트
@@ -134,6 +147,19 @@ export {
   calculateStreamStats,
 } from './streamHandler';
 
+// AI 응답 파서 (Agent Mode)
+export {
+  parseAgentResponse,
+  validateUpdateData,
+} from './responseParser';
+
+// 자동 업데이트 핸들러 (Agent Mode)
+export {
+  applyStoryforgeUpdate,
+  applyStoryforgeUpdates,
+} from './updateHandler';
+export type { UpdateResult } from './updateHandler';
+
 // Re-export defaults
 export { default as claudeClient } from './claudeClient';
 export { default as openaiClient } from './openaiClient';
@@ -141,3 +167,5 @@ export { default as geminiClient } from './geminiClient';
 export { default as unifiedClient } from './unifiedClient';
 export { default as contextManager } from './contextManager';
 export { default as streamHandler } from './streamHandler';
+export { default as responseParser } from './responseParser';
+export { default as updateHandler } from './updateHandler';

@@ -15,7 +15,7 @@ export function StatusBar() {
   const { currentProject } = useProjectStore();
   const { saveStatus, lastSavedAt } = useEditorStore();
   const { isAuthenticated, syncInfo } = useAuthStore();
-  const { toggleLeftPanel, toggleRightPanel, toggleFocusMode, isLeftPanelOpen, isRightPanelOpen } = useUIStore();
+  const { toggleLeftPanel, toggleFocusMode, isLeftPanelOpen, appMode, toggleAppMode } = useUIStore();
 
   return (
     <div className="flex h-6 items-center justify-between border-t border-border bg-sidebar px-3 text-xs text-muted-foreground">
@@ -69,15 +69,31 @@ export function StatusBar() {
           </svg>
         </button>
 
-        {/* AI 패널 토글 */}
+        {/* 모드 전환 버튼 */}
         <button
-          onClick={toggleRightPanel}
-          className="hover:text-foreground"
-          title={isRightPanelOpen ? 'AI 패널 숨기기' : 'AI 패널 보이기'}
+          onClick={toggleAppMode}
+          className={`flex items-center gap-1.5 rounded px-2 py-0.5 transition-colors ${
+            appMode === 'agent'
+              ? 'bg-primary/20 text-primary hover:bg-primary/30'
+              : 'hover:bg-muted hover:text-foreground'
+          }`}
+          title={appMode === 'writing' ? 'AI Agent 모드로 전환' : '집필 모드로 전환'}
         >
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
+          {appMode === 'writing' ? (
+            <>
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              <span>집필</span>
+            </>
+          ) : (
+            <>
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span>AI Agent</span>
+            </>
+          )}
         </button>
       </div>
     </div>

@@ -10,8 +10,8 @@
  * - 에러 상태 표시
  */
 
-import { memo } from 'react';
-import { User, Bot, AlertCircle, RefreshCw } from 'lucide-react';
+import { memo, useState } from 'react';
+import { User, Bot, AlertCircle, RefreshCw, Copy, Check } from 'lucide-react';
 import type { ChatMessage as ChatMessageType } from '@/types';
 import { ActionButton } from './ActionButton';
 import { TypingIndicator } from './TypingIndicator';
@@ -42,14 +42,26 @@ export const ChatMessage = memo(function ChatMessage({
 }: ChatMessageProps) {
   const isUser = message.role === 'user';
   const isError = message.status === 'error';
+  const [copied, setCopied] = useState(false);
 
   // 표시할 콘텐츠 결정
   const content = isStreaming ? streamingContent || '' : message.content;
 
+  // 클립보드 복사
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('복사 실패:', error);
+    }
+  };
+
   return (
     <div
       className={cn(
-        'flex gap-3',
+        'group flex gap-3',
         isUser ? 'flex-row-reverse' : 'flex-row'
       )}
     >
@@ -111,7 +123,10 @@ export const ChatMessage = memo(function ChatMessage({
         </div>
 
         {/* 메타 정보 */}
-        <div className="flex items-center gap-2 mt-1">
+        <div className={cn(
+          'flex items-center gap-2 mt-1',
+          isUser ? 'justify-end' : 'justify-start'
+        )}>
           <p className="text-xs text-muted-foreground">
             {formatRelativeTime(message.timestamp)}
           </p>
@@ -128,6 +143,27 @@ export const ChatMessage = memo(function ChatMessage({
             <span className="text-xs text-muted-foreground">
               · {message.tokenCount.toLocaleString()}t
             </span>
+          )}
+
+          {/* 복사 버튼 */}
+          {!isStreaming && content && (
+            <button
+              onClick={handleCopy}
+              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              title="메시지 복사"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-3 h-3 text-green-500" />
+                  <span className="text-green-500">복사됨</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3 h-3" />
+                  복사
+                </>
+              )}
+            </button>
           )}
 
           {/* 재시도 버튼 (에러 시) */}

@@ -35,24 +35,23 @@ export function getProviderFromModel(model: AIModel): AIProvider {
 }
 
 /**
- * 제공자별 사용 가능한 모델 목록
+ * 제공자별 사용 가능한 모델 목록 (2025년 기준 최신)
  */
 export const PROVIDER_MODELS: Record<AIProvider, { id: AIModel; name: string; description: string }[]> = {
   anthropic: [
-    { id: 'claude-opus-4-5-20251101', name: 'Claude Opus 4.5', description: '최고 성능, 복잡한 작업에 적합' },
-    { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', description: '균형 잡힌 성능과 비용' },
-    { id: 'claude-3-5-haiku-20241022', name: 'Claude Haiku 3.5', description: '빠른 응답, 간단한 작업에 적합' },
+    { id: 'claude-opus-4-5-20251101', name: 'Claude Opus 4.5', description: '최고 성능, SWE-bench 80.9%' },
+    { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: '가성비 최고, 복잡한 작업' },
+    { id: 'claude-haiku-4-5-20251022', name: 'Claude Haiku 4.5', description: '빠르고 저렴, 간단한 작업' },
   ],
   openai: [
-    { id: 'gpt-4o', name: 'GPT-4o', description: '최신 멀티모달 모델' },
-    { id: 'gpt-4o-mini', name: 'GPT-4o Mini', description: '빠르고 저렴한 소형 모델' },
-    { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', description: '강력한 성능의 이전 버전' },
-    { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', description: '빠르고 저렴한 범용 모델' },
+    { id: 'gpt-5', name: 'GPT-5', description: '최고 성능, 400K 컨텍스트' },
+    { id: 'gpt-5-mini', name: 'GPT-5 Mini', description: '가성비, 빠른 응답' },
+    { id: 'gpt-5-nano', name: 'GPT-5 Nano', description: '가장 저렴, 간단한 작업' },
   ],
   google: [
-    { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', description: '최신 빠른 모델' },
-    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', description: '강력한 성능의 대형 모델' },
-    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', description: '빠르고 효율적인 모델' },
+    { id: 'gemini-3-pro', name: 'Gemini 3 Pro', description: '최신 추론 모델, 1M 컨텍스트' },
+    { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', description: '가성비 우수, 안정적' },
+    { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', description: '가장 저렴, 빠른 속도' },
   ],
 };
 
@@ -217,11 +216,13 @@ export async function testConnection(
 
 /**
  * 통합 메시지 전송 (일반)
+ * @param projectId - Gemini 캐싱을 위한 프로젝트 ID (선택)
  */
 export async function sendMessage(
   messages: ChatMessage[],
   systemPrompt?: string,
-  config: Partial<AIConfig> = {}
+  config: Partial<AIConfig> = {},
+  projectId?: string
 ): Promise<{
   message: ChatMessage;
   inputTokens: number;
@@ -235,8 +236,16 @@ export async function sendMessage(
       return claudeClient.sendMessage(messages, systemPrompt, config);
     case 'openai':
       return openaiClient.sendMessage(messages, systemPrompt, config);
-    case 'google':
-      return geminiClient.sendMessage(messages, systemPrompt, config);
+    case 'google': {
+      const result = await geminiClient.sendMessage(messages, systemPrompt, config, projectId);
+      // cachedTokens는 내부적으로 처리됨, 인터페이스 호환성을 위해 기본 반환
+      return {
+        message: result.message,
+        inputTokens: result.inputTokens,
+        outputTokens: result.outputTokens,
+        cost: result.cost,
+      };
+    }
     default:
       throw new Error('알 수 없는 AI 제공자입니다.');
   }
@@ -244,6 +253,7 @@ export async function sendMessage(
 
 /**
  * 통합 메시지 전송 (스트리밍)
+ * @param projectId - Gemini 캐싱을 위한 프로젝트 ID (선택)
  */
 export async function sendMessageStream(
   messages: ChatMessage[],
@@ -254,7 +264,8 @@ export async function sendMessageStream(
     onToken?: (token: string) => void;
     onComplete?: (message: ChatMessage, inputTokens: number, outputTokens: number) => void;
     onError?: (error: AIServiceError) => void;
-  }
+  },
+  projectId?: string
 ): Promise<void> {
   const provider = config.provider || getProviderFromModel(config.model || 'claude-opus-4-5-20251101');
 
@@ -264,7 +275,7 @@ export async function sendMessageStream(
     case 'openai':
       return openaiClient.sendMessageStream(messages, systemPrompt, config, callbacks);
     case 'google':
-      return geminiClient.sendMessageStream(messages, systemPrompt, config, callbacks);
+      return geminiClient.sendMessageStream(messages, systemPrompt, config, callbacks, projectId);
     default:
       throw new Error('알 수 없는 AI 제공자입니다.');
   }
@@ -297,6 +308,44 @@ export function calculateCost(
 }
 
 // ============================================
+// Gemini Context Caching
+// ============================================
+
+/**
+ * Gemini 프로젝트 캐시 생성
+ * 프로젝트 컨텍스트를 캐싱하여 90% 비용 절감
+ */
+export const createGeminiCache = geminiClient.createProjectCache;
+
+/**
+ * Gemini 캐시 갱신
+ */
+export const refreshGeminiCache = geminiClient.refreshProjectCache;
+
+/**
+ * Gemini 캐시 삭제
+ */
+export const deleteGeminiCache = geminiClient.deleteProjectCache;
+
+/**
+ * Gemini 캐시 정보 조회
+ */
+export const getGeminiCacheInfo = geminiClient.getCacheInfo;
+
+/**
+ * Gemini 캐시 유효 여부
+ */
+export const isGeminiCacheValid = geminiClient.isCacheValid;
+
+/**
+ * Gemini 캐싱으로 절감된 비용 계산
+ */
+export const calculateGeminiSavings = geminiClient.calculateSavings;
+
+// Re-export type
+export type { GeminiCacheInfo } from './geminiClient';
+
+// ============================================
 // Exports
 // ============================================
 
@@ -324,4 +373,12 @@ export default {
 
   // Cost
   calculateCost,
+
+  // Gemini Caching
+  createGeminiCache,
+  refreshGeminiCache,
+  deleteGeminiCache,
+  getGeminiCacheInfo,
+  isGeminiCacheValid,
+  calculateGeminiSavings,
 };
