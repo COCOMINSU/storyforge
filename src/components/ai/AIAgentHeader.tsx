@@ -26,6 +26,7 @@ export function AIAgentHeader() {
     getSessionsByProject,
     loadSession,
     createSession,
+    lastClaudeCacheInfo,
   } = useAIStore();
   const { openModal, setAppMode } = useUIStore();
   const { currentProject } = useProjectStore();
@@ -53,8 +54,10 @@ export function AIAgentHeader() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Gemini 사용 여부 확인
-  const isGemini = getProviderFromModel(config.model) === 'google';
+  // 제공자 확인
+  const currentModelProvider = getProviderFromModel(config.model);
+  const isGemini = currentModelProvider === 'google';
+  const isClaude = currentModelProvider === 'anthropic';
 
   // 캐시 남은 시간 계산
   const getCacheRemainingTime = () => {
@@ -148,6 +151,35 @@ export function AIAgentHeader() {
                 캐시 없음
               </span>
             )}
+          </div>
+        )}
+
+        {/* Claude 캐시 상태 (Prompt Caching) */}
+        {isClaude && lastClaudeCacheInfo && (
+          <div className="flex items-center gap-1.5 text-xs">
+            {lastClaudeCacheInfo.cacheReadTokens > 0 ? (
+              <span className="flex items-center gap-1 text-green-600">
+                <span className="h-2 w-2 rounded-full bg-green-500" />
+                캐시 적중
+                <span className="text-muted-foreground">
+                  · {lastClaudeCacheInfo.cacheReadTokens.toLocaleString()} 토큰 절감
+                </span>
+              </span>
+            ) : lastClaudeCacheInfo.cacheCreationTokens > 0 ? (
+              <span className="flex items-center gap-1 text-blue-600">
+                <span className="h-2 w-2 rounded-full bg-blue-500" />
+                캐시 생성됨
+                <span className="text-muted-foreground">
+                  · {lastClaudeCacheInfo.cacheCreationTokens.toLocaleString()} 토큰
+                </span>
+              </span>
+            ) : null}
+          </div>
+        )}
+        {isClaude && !lastClaudeCacheInfo && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-gray-400" />
+            자동 캐시 (1024+ 토큰)
           </div>
         )}
       </div>

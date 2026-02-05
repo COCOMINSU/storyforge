@@ -715,37 +715,49 @@ export function formatAgentSystemPrompt(context: FullProjectContext): string {
   parts.push(`- 총 글자수: ${context.metadata.totalCharCount.toLocaleString()}자`);
   parts.push(`- 총 회차: ${context.metadata.totalChapterCount}화`);
 
-  // 9. 자동 업데이트 안내
+  // 9. 자동 업데이트 안내 (강조된 버전)
   parts.push(`\n---\n
-# 중요: 데이터 자동 저장
+# ⚠️ 매우 중요: 데이터 자동 저장 시스템
 
-당신이 캐릭터, 장소, 세계관 설정을 **제안하거나 생성할 때마다**,
-응답의 맨 끝에 반드시 다음 형식의 JSON 블록을 포함하세요.
-이 블록이 있어야 작가의 월드카드에 자동으로 저장됩니다.
+## 필수 규칙 (반드시 지켜야 함!)
 
-## 캐릭터 생성 예시
+당신의 응답에서 **캐릭터 이름, 장소, 세계관 설정이 구체적으로 언급**되면,
+응답의 맨 끝에 **반드시** \`\`\`storyforge-update\`\`\` JSON 블록을 포함해야 합니다.
+
+### 📌 JSON 블록을 포함해야 하는 경우:
+- 캐릭터의 이름을 제안하거나 설명할 때
+- 장소의 이름을 제안하거나 설명할 때
+- 세계관 설정(마법 체계, 종족, 국가 등)을 제안할 때
+- 기획안, 설정집, 캐릭터 시트 등을 작성할 때
+
+### ❌ JSON 블록을 포함하지 않는 경우:
+- 단순 질문에 대한 답변
+- 일반적인 조언이나 피드백
+- 기존 캐릭터/장소에 대한 분석만 하는 경우
+
+## 캐릭터 생성 형식
 \`\`\`storyforge-update
 {
   "type": "create_character",
   "data": {
-    "name": "이름",
+    "name": "캐릭터 이름",
     "role": "protagonist|antagonist|supporting|minor",
-    "age": "나이",
+    "age": "나이 (예: 25세)",
     "gender": "성별",
     "occupation": "직업",
-    "personality": "성격 설명",
+    "personality": "성격 요약",
     "background": "배경 스토리",
     "motivation": "동기/목표"
   }
 }
 \`\`\`
 
-## 장소 생성 예시
+## 장소 생성 형식
 \`\`\`storyforge-update
 {
   "type": "create_location",
   "data": {
-    "name": "장소명",
+    "name": "장소 이름",
     "locationType": "도시|마을|던전|자연|건물|기타",
     "description": "장소 설명",
     "atmosphere": "분위기",
@@ -754,18 +766,26 @@ export function formatAgentSystemPrompt(context: FullProjectContext): string {
 }
 \`\`\`
 
-## 지원되는 type
-- create_character: 새 캐릭터 생성
-- update_character: 기존 캐릭터 수정 (data에 id 필수)
-- create_location: 새 장소 생성
-- update_location: 기존 장소 수정 (data에 id 필수)
-- update_synopsis: 시놉시스/줄거리 수정
+## 중요 규칙
+1. **이름이 있는 캐릭터** = 반드시 JSON 블록 포함
+2. **이름이 있는 장소** = 반드시 JSON 블록 포함
+3. **여러 캐릭터/장소** = 각각 별도의 JSON 블록
+4. JSON 블록은 항상 **응답 맨 끝**에 배치
+5. 일반 텍스트와 JSON 블록 사이에 빈 줄 포함
 
-## 필수 규칙
-1. 캐릭터나 장소를 **제안할 때마다** 반드시 JSON 블록 포함
-2. 여러 캐릭터/장소를 제안하면 **각각 별도의 JSON 블록**으로 포함
-3. JSON 블록은 항상 **응답의 맨 끝**에 배치
-4. 단순 질문 답변이나 조언만 할 때는 포함하지 않음
+## 예시 응답 형식
+
+\`\`\`
+[캐릭터에 대한 설명 텍스트...]
+
+주인공 '한결'은 24세 배달 기사로...
+
+---
+위의 설정이 월드카드에 자동 저장됩니다.
+\`\`\`storyforge-update
+{"type":"create_character","data":{"name":"한결","role":"protagonist","age":"24세","gender":"남성","occupation":"드론 배달 기사","personality":"현실에 찌들어 무기력하지만 내면에 선함을 가진"}}
+\`\`\`
+\`\`\`
 `);
 
   return parts.join('\n');

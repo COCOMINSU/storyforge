@@ -107,6 +107,13 @@ interface AIState {
 
   /** 캐시 초기화 중 여부 */
   isCacheInitializing: boolean;
+
+  /** 마지막 Claude 캐시 사용 정보 */
+  lastClaudeCacheInfo: {
+    cacheCreationTokens: number;
+    cacheReadTokens: number;
+    timestamp: Date;
+  } | null;
 }
 
 interface AIActions {
@@ -313,6 +320,7 @@ export const useAIStore = create<AIStore>()(
         lastError: null,
         geminiCacheInfo: null,
         isCacheInitializing: false,
+        lastClaudeCacheInfo: null,
 
         // ============================================
         // 세션 관리
@@ -483,6 +491,17 @@ export const useAIStore = create<AIStore>()(
                     // 캐시 정보가 있으면 로깅
                     if (cacheCreationTokens || cacheReadTokens) {
                       console.log(`[AIStore] 캐시 사용: write=${cacheCreationTokens || 0}, read=${cacheReadTokens || 0}`);
+                      // Claude 캐시 정보 저장 (UI 표시용)
+                      const msgProvider = getProviderFromModel(config.model);
+                      if (msgProvider === 'anthropic') {
+                        set({
+                          lastClaudeCacheInfo: {
+                            cacheCreationTokens: cacheCreationTokens || 0,
+                            cacheReadTokens: cacheReadTokens || 0,
+                            timestamp: new Date(),
+                          },
+                        });
+                      }
                     }
 
                     const cost = calculateCost(
@@ -815,9 +834,19 @@ export const useAIStore = create<AIStore>()(
                     }));
                   },
                   onComplete: async (message, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens) => {
-                    // 캐시 정보가 있으면 로깅
+                    // 캐시 정보가 있으면 로깅 및 저장
                     if (cacheCreationTokens || cacheReadTokens) {
                       console.log(`[AIStore] 에이전트 캐시 사용: write=${cacheCreationTokens || 0}, read=${cacheReadTokens || 0}`);
+                      // Claude 캐시 정보 저장 (UI 표시용)
+                      if (provider === 'anthropic') {
+                        set({
+                          lastClaudeCacheInfo: {
+                            cacheCreationTokens: cacheCreationTokens || 0,
+                            cacheReadTokens: cacheReadTokens || 0,
+                            timestamp: new Date(),
+                          },
+                        });
+                      }
                     }
 
                     const cost = calculateCost(
