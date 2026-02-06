@@ -12,7 +12,8 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import type { ModalType, LeftPanelTab, Theme, AppMode } from '@/types';
+import type { ModalType, LeftPanelTab, ThemeId, AppMode } from '@/types';
+import { isThemeDark } from '@/lib';
 
 interface ToastMessage {
   id: string;
@@ -47,7 +48,7 @@ interface UIState {
   modalData: Record<string, unknown> | null;
 
   /** 테마 */
-  theme: Theme;
+  theme: ThemeId;
 
   /** 토스트 메시지 목록 */
   toasts: ToastMessage[];
@@ -94,7 +95,7 @@ interface UIActions {
   closeModal: () => void;
 
   /** 테마 변경 */
-  setTheme: (theme: Theme) => void;
+  setTheme: (theme: ThemeId) => void;
 
   /** 토스트 추가 */
   addToast: (toast: Omit<ToastMessage, 'id'>) => void;
@@ -146,7 +147,7 @@ export const useUIStore = create<UIStore>()(
         rightPanelWidth: PANEL_DEFAULT_WIDTH,
         activeModal: null,
         modalData: null,
-        theme: 'dark',
+        theme: 'dark-default',
         toasts: [],
         isFullscreen: false,
         isFocusMode: false,
@@ -217,13 +218,28 @@ export const useUIStore = create<UIStore>()(
           if (typeof document !== 'undefined') {
             const root = document.documentElement;
 
+            // 기존 테마 클래스 모두 제거
+            const themeClasses = Array.from(root.classList).filter(
+              (c) => c.startsWith('theme-') || c === 'dark' || c === 'light'
+            );
+            themeClasses.forEach((c) => root.classList.remove(c));
+
             if (theme === 'system') {
+              // 시스템 설정 따르기
               const prefersDark = window.matchMedia(
                 '(prefers-color-scheme: dark)'
               ).matches;
               root.classList.toggle('dark', prefersDark);
+              root.classList.toggle('light', !prefersDark);
             } else {
-              root.classList.toggle('dark', theme === 'dark');
+              // 테마 클래스 추가 (dark-default는 기본값이므로 클래스 불필요)
+              if (theme !== 'dark-default') {
+                root.classList.add(`theme-${theme}`);
+              }
+              // 다크/라이트 모드 클래스 추가
+              const isDark = isThemeDark(theme);
+              root.classList.toggle('dark', isDark);
+              root.classList.toggle('light', !isDark);
             }
           }
         },
@@ -302,13 +318,23 @@ export const useUIStore = create<UIStore>()(
  */
 export function initializeTheme(): void {
   const { theme, setTheme } = useUIStore.getState();
-  setTheme(theme);
+
+  // 저장된 테마가 레거시 값이면 변환
+  const migratedTheme =
+    theme === ('dark' as string) ? 'dark-default' :
+    theme === ('light' as string) ? 'light-default' :
+    theme;
+
+  setTheme(migratedTheme as ThemeId);
 
   // 시스템 테마 변경 감지
-  if (typeof window !== 'undefined' && theme === 'system') {
+  if (typeof window !== 'undefined' && migratedTheme === 'system') {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     mediaQuery.addEventListener('change', () => {
-      setTheme('system');
+      const { theme: currentTheme } = useUIStore.getState();
+      if (currentTheme === 'system') {
+        setTheme('system');
+      }
     });
   }
 }

@@ -69,3 +69,16 @@ export {
   isSupabaseConfigured,
   checkSupabaseConnection,
 } from './supabase';
+
+// 테마
+export {
+  themes,
+  themeList,
+  themesByCategory,
+  getTheme,
+  isThemeDark,
+  themeToCSSVariables,
+  type ThemeInfo,
+  type ThemeColors,
+  type ThemeDefinition,
+} from './themes';

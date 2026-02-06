@@ -2,8 +2,10 @@
 @config "../../tailwind.config.ts";
 
 @layer base {
+  /* ============================================
+   * 기본 테마 (dark-default)
+   * ============================================ */
   :root {
-    /* 다크 모드 (기본) */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
@@ -32,6 +34,12 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
 
+    --sidebar: 222.2 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+
+    /* 텍스트 선택 색상 */
+    --selection: 210 100% 60%;
+
     --radius: 0.5rem;
 
     /* 문서 상태 색상 */
@@ -41,40 +49,272 @@
     --status-published: 199.4 95.5% 47.9%;
   }
 
-  .light {
+  /* ============================================
+   * 다크 테마: 미드나잇
+   * ============================================ */
+  .theme-dark-midnight {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 5%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --sidebar: 240 10% 3.9%;
+    --sidebar-foreground: 0 0% 98%;
+    --selection: 240 80% 65%;
+  }
+
+  /* ============================================
+   * 다크 테마: 포레스트
+   * ============================================ */
+  .theme-dark-forest {
+    --background: 150 30% 5%;
+    --foreground: 138 40% 95%;
+    --card: 150 25% 7%;
+    --card-foreground: 138 40% 95%;
+    --popover: 150 25% 7%;
+    --popover-foreground: 138 40% 95%;
+    --primary: 142 70% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 150 20% 15%;
+    --secondary-foreground: 138 40% 95%;
+    --muted: 150 20% 15%;
+    --muted-foreground: 150 15% 60%;
+    --accent: 150 25% 18%;
+    --accent-foreground: 138 40% 95%;
+    --destructive: 0 62.8% 35%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 150 20% 15%;
+    --input: 150 20% 15%;
+    --ring: 142 50% 50%;
+    --sidebar: 150 30% 5%;
+    --sidebar-foreground: 138 40% 95%;
+    --selection: 142 70% 50%;
+  }
+
+  /* ============================================
+   * 다크 테마: 퍼플 나잇
+   * ============================================ */
+  .theme-dark-purple {
+    --background: 270 50% 5%;
+    --foreground: 270 20% 95%;
+    --card: 270 45% 7%;
+    --card-foreground: 270 20% 95%;
+    --popover: 270 45% 7%;
+    --popover-foreground: 270 20% 95%;
+    --primary: 280 70% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 30% 15%;
+    --secondary-foreground: 270 20% 95%;
+    --muted: 270 30% 15%;
+    --muted-foreground: 270 15% 60%;
+    --accent: 280 40% 20%;
+    --accent-foreground: 270 20% 95%;
+    --destructive: 0 62.8% 35%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 270 30% 15%;
+    --input: 270 30% 15%;
+    --ring: 280 60% 60%;
+    --sidebar: 270 50% 5%;
+    --sidebar-foreground: 270 20% 95%;
+    --selection: 280 70% 65%;
+  }
+
+  /* ============================================
+   * 라이트 테마: 기본
+   * ============================================ */
+  .light,
+  .theme-light-default {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
-
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
+    --sidebar: 210 40% 96.1%;
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --selection: 210 100% 50%;
 
     /* 라이트 모드 문서 상태 색상 */
     --status-draft: 217.2 32.6% 60%;
     --status-writing: 47.9 95.8% 43.1%;
     --status-complete: 142.1 76.2% 30.3%;
     --status-published: 199.4 95.5% 40.9%;
+  }
+
+  /* ============================================
+   * 라이트 테마: 라벤더 (파스텔 보라)
+   * ============================================ */
+  .theme-light-lavender {
+    --background: 270 50% 98%;
+    --foreground: 270 50% 15%;
+    --card: 270 40% 99%;
+    --card-foreground: 270 50% 15%;
+    --popover: 270 40% 99%;
+    --popover-foreground: 270 50% 15%;
+    --primary: 270 60% 50%;
+    --primary-foreground: 270 50% 98%;
+    --secondary: 270 30% 93%;
+    --secondary-foreground: 270 50% 15%;
+    --muted: 270 30% 93%;
+    --muted-foreground: 270 20% 45%;
+    --accent: 280 40% 90%;
+    --accent-foreground: 270 50% 15%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 270 25% 88%;
+    --input: 270 25% 88%;
+    --ring: 270 60% 50%;
+    --sidebar: 270 40% 95%;
+    --sidebar-foreground: 270 50% 15%;
+    --selection: 270 80% 60%;
+
+    --status-draft: 270 32.6% 60%;
+    --status-writing: 47.9 85% 50%;
+    --status-complete: 142.1 66% 40%;
+    --status-published: 199.4 85% 45%;
+  }
+
+  /* ============================================
+   * 라이트 테마: 민트 (파스텔 민트)
+   * ============================================ */
+  .theme-light-mint {
+    --background: 160 50% 97%;
+    --foreground: 160 50% 10%;
+    --card: 160 40% 99%;
+    --card-foreground: 160 50% 10%;
+    --popover: 160 40% 99%;
+    --popover-foreground: 160 50% 10%;
+    --primary: 160 70% 40%;
+    --primary-foreground: 160 50% 97%;
+    --secondary: 160 30% 92%;
+    --secondary-foreground: 160 50% 10%;
+    --muted: 160 30% 92%;
+    --muted-foreground: 160 20% 40%;
+    --accent: 150 40% 88%;
+    --accent-foreground: 160 50% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 160 25% 85%;
+    --input: 160 25% 85%;
+    --ring: 160 70% 40%;
+    --sidebar: 160 40% 94%;
+    --sidebar-foreground: 160 50% 10%;
+    --selection: 160 80% 45%;
+
+    --status-draft: 160 32.6% 50%;
+    --status-writing: 47.9 85% 50%;
+    --status-complete: 142.1 66% 40%;
+    --status-published: 199.4 85% 45%;
+  }
+
+  /* ============================================
+   * 시즌 테마: 바다 (여름) 🏖️
+   * 밝고 화사한 여름 해변
+   * ============================================ */
+  .theme-season-ocean {
+    /* 밝고 화사한 하늘색 배경 */
+    --background: 197 100% 92%;
+    --foreground: 210 80% 25%;
+    /* 카드는 하얀 구름/모래 느낌 */
+    --card: 197 100% 96%;
+    --card-foreground: 210 80% 25%;
+    --popover: 197 100% 98%;
+    --popover-foreground: 210 80% 25%;
+    /* 생생한 바다색 primary */
+    --primary: 197 100% 47%;
+    --primary-foreground: 0 0% 100%;
+    /* secondary는 연한 하늘색 (AI 메시지 배경) */
+    --secondary: 197 80% 85%;
+    --secondary-foreground: 210 80% 20%;
+    /* muted는 연한 파랑 */
+    --muted: 197 60% 88%;
+    --muted-foreground: 210 50% 35%;
+    /* 산호색 악센트 */
+    --accent: 25 100% 70%;
+    --accent-foreground: 210 80% 20%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 197 50% 82%;
+    --input: 197 60% 90%;
+    --ring: 197 100% 47%;
+    /* 사이드바도 같은 하늘색 계열 */
+    --sidebar: 197 100% 92%;
+    --sidebar-foreground: 210 80% 25%;
+    --selection: 197 100% 50%;
+
+    --status-draft: 210 60% 55%;
+    --status-writing: 40 95% 50%;
+    --status-complete: 160 70% 45%;
+    --status-published: 197 100% 47%;
+  }
+
+  /* ============================================
+   * 시즌 테마: 크리스마스 (겨울) 🎅
+   * 새하얀 눈밭과 빨강/초록 포인트
+   * ============================================ */
+  .theme-season-christmas {
+    /* 새하얀 눈 배경 */
+    --background: 150 30% 97%;
+    --foreground: 150 50% 15%;
+    /* 카드는 순백색 */
+    --card: 0 0% 100%;
+    --card-foreground: 150 50% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 50% 15%;
+    /* 산타/루돌프 빨간색 primary */
+    --primary: 0 80% 55%;
+    --primary-foreground: 0 0% 100%;
+    /* secondary는 연한 초록색 (AI 메시지 배경) */
+    --secondary: 145 40% 90%;
+    --secondary-foreground: 150 50% 15%;
+    /* muted는 연한 회색 (눈 그림자) */
+    --muted: 150 20% 93%;
+    --muted-foreground: 150 20% 40%;
+    /* 초록 악센트 */
+    --accent: 145 50% 85%;
+    --accent-foreground: 150 50% 15%;
+    --destructive: 0 85% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 150 20% 88%;
+    --input: 150 20% 93%;
+    /* 골드 링 (장식) */
+    --ring: 45 100% 50%;
+    /* 사이드바도 흰 눈 배경과 동일 */
+    --sidebar: 150 30% 97%;
+    --sidebar-foreground: 150 50% 15%;
+    --selection: 0 80% 55%;
+
+    --status-draft: 150 30% 55%;
+    --status-writing: 45 95% 50%;
+    --status-complete: 145 60% 40%;
+    --status-published: 0 80% 55%;
   }
 
   * {
@@ -107,8 +347,206 @@
   background-color: hsl(var(--muted-foreground) / 0.5);
 }
 
-/* 선택 영역 스타일 */
+/* 선택 영역 스타일 - 테마별 최적화 */
 ::selection {
-  background-color: hsl(var(--primary) / 0.2);
-  color: hsl(var(--foreground));
+  background-color: hsl(var(--selection, 210 100% 50%) / 0.35);
+  color: inherit;
+}
+
+/* 다크 테마 선택 영역 (밝은 배경 필요) */
+.dark ::selection {
+  background-color: hsl(var(--selection, 210 100% 70%) / 0.4);
+}
+
+/* 라이트 테마 선택 영역 (진한 배경 가능) */
+.light ::selection {
+  background-color: hsl(var(--selection, 210 100% 50%) / 0.3);
+}
+
+/* 사이드바 배경 유틸리티 클래스 */
+.bg-sidebar {
+  background-color: hsl(var(--sidebar, var(--background)));
+  color: hsl(var(--sidebar-foreground, var(--foreground)));
+}
+
+/* ============================================
+ * 모바일 Safe Area 유틸리티
+ * ============================================ */
+
+/* iOS Safe Area 지원 */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left, 0);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+.safe-area-x {
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+.safe-area-y {
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-area-all {
+  padding-top: env(safe-area-inset-top, 0);
+  padding-right: env(safe-area-inset-right, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-left: env(safe-area-inset-left, 0);
+}
+
+/* 하단 패딩 (네비게이션바 + safe-area) */
+.pb-safe {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0));
+}
+
+/* 모바일 터치 최적화 */
+@media (max-width: 767px) {
+  /* 터치 타겟 최소 크기 */
+  button,
+  a,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* 스크롤 최적화 */
+  .scroll-touch {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* 텍스트 선택 방지 (드래그 시) */
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* 터치 피드백 */
+  .touch-feedback:active {
+    opacity: 0.7;
+    transition: opacity 0.1s;
+  }
+}
+
+/* 모바일 드로어 애니메이션 */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* ============================================
+ * 시즌 테마 배경 그래픽
+ * ============================================ */
+
+/* 바다 테마 배경 - 선명한 파도, 조개, 불가사리, 물고기 */
+html.theme-season-ocean {
+  background-color: hsl(200 30% 98%);
+  background-image:
+    /* 메인 장식 패턴 - 조개, 불가사리, 물고기 (선명하게) */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3C!-- 큰 불가사리 --%3E%3Cpath fill='%23FF6B35' fill-opacity='0.4' d='M80,60 L88,85 L115,85 L93,100 L100,125 L80,108 L60,125 L67,100 L45,85 L72,85 Z'/%3E%3C!-- 조개껍데기 1 --%3E%3Cpath fill='%2300ACC1' fill-opacity='0.35' d='M200,50 Q210,25 230,35 Q250,25 260,50 Q250,60 230,70 Q210,60 200,50 Z'/%3E%3Cpath stroke='%23006064' stroke-width='1.5' stroke-opacity='0.3' fill='none' d='M210,45 L230,65 M230,40 L230,65 M250,45 L230,65'/%3E%3C!-- 물고기 --%3E%3Cellipse fill='%23FFB74D' fill-opacity='0.5' cx='150' cy='150' rx='25' ry='12'/%3E%3Cpath fill='%23FFB74D' fill-opacity='0.5' d='M120,150 L105,135 L105,165 Z'/%3E%3Ccircle fill='%23333' fill-opacity='0.6' cx='168' cy='148' r='3'/%3E%3C!-- 작은 불가사리 --%3E%3Cpath fill='%23FF8A65' fill-opacity='0.35' d='M250,200 L255,215 L272,215 L258,225 L263,240 L250,230 L237,240 L242,225 L228,215 L245,215 Z'/%3E%3C!-- 조개껍데기 2 --%3E%3Cpath fill='%2326C6DA' fill-opacity='0.4' d='M40,220 Q50,195 70,205 Q90,195 100,220 Q90,230 70,240 Q50,230 40,220 Z'/%3E%3C!-- 거품들 --%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.25' cx='180' cy='250' r='8'/%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.2' cx='195' cy='265' r='5'/%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.3' cx='280' cy='100' r='6'/%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.2' cx='30' cy='120' r='10'/%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.15' cx='45' cy='135' r='5'/%3E%3C/svg%3E"),
+    /* 하단 파도 - 더 선명하게 */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 250' preserveAspectRatio='none'%3E%3Cpath fill='%2300ACC1' fill-opacity='0.5' d='M0,120 C200,180 400,60 600,120 C800,180 1000,60 1200,120 C1300,150 1400,100 1440,130 L1440,250 L0,250 Z'/%3E%3Cpath fill='%2300838F' fill-opacity='0.6' d='M0,160 C150,100 350,200 550,140 C750,80 950,180 1150,140 C1300,110 1400,160 1440,150 L1440,250 L0,250 Z'/%3E%3Cpath fill='%23006064' fill-opacity='0.4' d='M0,200 C200,170 400,230 600,190 C800,150 1000,210 1200,180 L1440,200 L1440,250 L0,250 Z'/%3E%3C!-- 파도 흰 포말 --%3E%3Cpath fill='none' stroke='white' stroke-width='3' stroke-opacity='0.6' d='M50,155 Q100,140 150,155 Q200,170 250,155'/%3E%3Cpath fill='none' stroke='white' stroke-width='2' stroke-opacity='0.5' d='M400,135 Q450,120 500,135 Q550,150 600,135'/%3E%3Cpath fill='none' stroke='white' stroke-width='3' stroke-opacity='0.55' d='M800,150 Q850,135 900,150 Q950,165 1000,150'/%3E%3Cpath fill='none' stroke='white' stroke-width='2' stroke-opacity='0.5' d='M1150,140 Q1200,125 1250,140 Q1300,155 1350,140'/%3E%3C/svg%3E");
+  background-position:
+    top left,
+    bottom center;
+  background-repeat:
+    repeat,
+    repeat-x;
+  background-size:
+    300px 300px,
+    100% 180px;
+  background-attachment: fixed;
+}
+
+html.theme-season-ocean body {
+  background-color: transparent;
+}
+
+/* 바다 테마 - 내부 컨테이너 반투명 처리 */
+html.theme-season-ocean .bg-background {
+  background-color: hsl(200 30% 98% / 0.75);
+}
+
+html.theme-season-ocean .bg-sidebar {
+  background-color: hsl(200 30% 96% / 0.8);
+}
+
+/* 크리스마스 테마 배경 - 다크 배경에 풍성한 장식 */
+html.theme-season-christmas {
+  background-color: hsl(220 30% 8%);
+  background-image:
+    /* 눈송이 패턴 - 밝은 흰색/파란색 (다크 배경용) */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3C!-- 큰 눈송이 1 --%3E%3Cg stroke='%23E3F2FD' stroke-width='2' stroke-opacity='0.6' fill='none'%3E%3Cpath d='M50,20 L50,80'/%3E%3Cpath d='M20,50 L80,50'/%3E%3Cpath d='M28,28 L72,72'/%3E%3Cpath d='M28,72 L72,28'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23BBDEFB' fill-opacity='0.5'/%3E%3Ccircle cx='50' cy='20' r='4' fill='white' fill-opacity='0.6'/%3E%3Ccircle cx='50' cy='80' r='4' fill='white' fill-opacity='0.6'/%3E%3Ccircle cx='20' cy='50' r='4' fill='white' fill-opacity='0.6'/%3E%3Ccircle cx='80' cy='50' r='4' fill='white' fill-opacity='0.6'/%3E%3C/g%3E%3C!-- 작은 눈송이들 --%3E%3Ccircle fill='white' fill-opacity='0.5' cx='150' cy='30' r='5'/%3E%3Ccircle fill='white' fill-opacity='0.45' cx='120' cy='150' r='4'/%3E%3Ccircle fill='white' fill-opacity='0.4' cx='180' cy='120' r='6'/%3E%3Ccircle fill='white' fill-opacity='0.5' cx='30' cy='170' r='3'/%3E%3Ccircle fill='white' fill-opacity='0.45' cx='170' cy='180' r='4'/%3E%3C!-- 빨간 장식볼 --%3E%3Ccircle fill='%23EF5350' fill-opacity='0.8' cx='140' cy='80' r='10'/%3E%3Cellipse fill='white' fill-opacity='0.5' cx='136' cy='76' rx='3' ry='2'/%3E%3C!-- 초록 장식볼 --%3E%3Ccircle fill='%2366BB6A' fill-opacity='0.75' cx='90' cy='120' r='8'/%3E%3Cellipse fill='white' fill-opacity='0.45' cx='87' cy='117' rx='2' ry='1.5'/%3E%3C!-- 금색 별 --%3E%3Cpath fill='%23FFD700' fill-opacity='0.85' d='M160,160 L163,170 L174,170 L165,177 L169,188 L160,180 L151,188 L155,177 L146,170 L157,170 Z'/%3E%3C/svg%3E"),
+    /* 하단 크리스마스 장식 - 트리, 선물, 사탕지팡이 (밝게) */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 220'%3E%3C!-- 왼쪽 큰 트리 --%3E%3Cpolygon fill='%232E7D32' fill-opacity='0.9' points='100,200 150,200 125,160'/%3E%3Cpolygon fill='%2343A047' fill-opacity='0.9' points='90,165 160,165 125,110'/%3E%3Cpolygon fill='%2366BB6A' fill-opacity='0.85' points='95,115 155,115 125,60'/%3E%3Crect fill='%23A1887F' fill-opacity='0.9' x='115' y='200' width='20' height='20'/%3E%3C!-- 트리 장식 --%3E%3Ccircle fill='%23EF5350' fill-opacity='0.95' cx='115' cy='140' r='6'/%3E%3Ccircle fill='%23FFD700' fill-opacity='0.95' cx='140' cy='155' r='5'/%3E%3Ccircle fill='%2364B5F6' fill-opacity='0.9' cx='120' cy='175' r='5'/%3E%3Ccircle fill='%23EF5350' fill-opacity='0.9' cx='135' cy='125' r='4'/%3E%3Ccircle fill='%23FFD700' fill-opacity='0.95' cx='110' cy='100' r='4'/%3E%3C!-- 트리 꼭대기 별 --%3E%3Cpath fill='%23FFD700' fill-opacity='1' d='M125,55 L128,65 L139,65 L130,72 L134,83 L125,75 L116,83 L120,72 L111,65 L122,65 Z'/%3E%3C!-- 중앙 선물상자 --%3E%3Crect fill='%23EF5350' fill-opacity='0.9' x='270' y='170' width='60' height='50'/%3E%3Crect fill='%23FFD700' fill-opacity='0.95' x='295' y='170' width='10' height='50'/%3E%3Crect fill='%23FFD700' fill-opacity='0.95' x='270' y='185' width='60' height='10'/%3E%3Cpath fill='%23FFD700' fill-opacity='1' d='M300,170 Q280,150 300,155 Q320,150 300,170'/%3E%3C!-- 사탕지팡이 --%3E%3Cpath stroke='%23EF5350' stroke-width='8' stroke-opacity='0.95' fill='none' d='M220,220 L220,160 Q220,140 240,140'/%3E%3Cpath stroke='white' stroke-width='8' stroke-opacity='0.8' stroke-dasharray='12 12' fill='none' d='M220,220 L220,160 Q220,140 240,140'/%3E%3C!-- 오른쪽 작은 트리 --%3E%3Cpolygon fill='%232E7D32' fill-opacity='0.85' points='480,200 520,200 500,165'/%3E%3Cpolygon fill='%2343A047' fill-opacity='0.85' points='475,170 525,170 500,130'/%3E%3Cpolygon fill='%2366BB6A' fill-opacity='0.8' points='480,135 520,135 500,95'/%3E%3Crect fill='%23A1887F' fill-opacity='0.85' x='492' y='200' width='16' height='15'/%3E%3C!-- 오른쪽 트리 장식 --%3E%3Ccircle fill='%23FFD700' fill-opacity='0.9' cx='495' cy='150' r='5'/%3E%3Ccircle fill='%23EF5350' fill-opacity='0.9' cx='510' cy='165' r='4'/%3E%3Ccircle fill='%2364B5F6' fill-opacity='0.85' cx='490' cy='180' r='4'/%3E%3Cpath fill='%23FFD700' fill-opacity='1' d='M500,90 L502,97 L510,97 L504,102 L506,110 L500,105 L494,110 L496,102 L490,97 L498,97 Z'/%3E%3C!-- 작은 선물상자들 --%3E%3Crect fill='%2366BB6A' fill-opacity='0.85' x='380' y='190' width='35' height='30'/%3E%3Crect fill='%23EF5350' fill-opacity='0.9' x='393' y='190' width='8' height='30'/%3E%3Crect fill='%23EF5350' fill-opacity='0.9' x='380' y='200' width='35' height='8'/%3E%3Crect fill='%2364B5F6' fill-opacity='0.8' x='430' y='195' width='30' height='25'/%3E%3Crect fill='%23FFD700' fill-opacity='0.9' x='442' y='195' width='6' height='25'/%3E%3C!-- 눈 쌓인 효과 --%3E%3Cpath fill='white' fill-opacity='0.85' d='M0,220 Q30,210 60,220 Q90,215 120,220 Q150,212 180,220 Q210,218 240,220 Q270,212 300,220 Q330,215 360,220 Q390,210 420,220 Q450,218 480,220 Q510,212 540,220 Q570,218 600,220 L600,220 L0,220 Z'/%3E%3C/svg%3E");
+  background-position:
+    top left,
+    bottom center;
+  background-repeat:
+    repeat,
+    repeat-x;
+  background-size:
+    200px 200px,
+    600px 200px;
+  background-attachment: fixed;
+}
+
+html.theme-season-christmas body {
+  background-color: transparent;
+}
+
+/* 크리스마스 테마 - 내부 컨테이너 반투명 처리 (다크 배경) */
+html.theme-season-christmas .bg-background {
+  background-color: hsl(220 30% 10% / 0.85);
+}
+
+html.theme-season-christmas .bg-sidebar {
+  background-color: hsl(220 30% 12% / 0.9);
 }

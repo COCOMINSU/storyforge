@@ -44,7 +44,8 @@ export type {
   SyncStatus,
   ModalType,
   LeftPanelTab,
-  Theme,
+  ThemeId,
+  Theme, // 레거시 호환
   AppMode,
   CharCountResult,
   User,

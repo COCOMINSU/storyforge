@@ -11,6 +11,7 @@
 
 import { useRef, useEffect } from 'react';
 import { useAIStore, useProjectStore } from '@/stores';
+import { useIsMobile } from '@/hooks';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { AIAgentHeader } from './AIAgentHeader';
@@ -20,6 +21,7 @@ export function AIAgentView() {
   const { currentSession, isGenerating, sendAgentMessage, createSession } = useAIStore();
   const { currentProject } = useProjectStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   const messages = currentSession?.messages || [];
 
@@ -43,16 +45,16 @@ export function AIAgentView() {
 
   return (
     <div className="flex h-full flex-col bg-background">
-      {/* 헤더 */}
-      <AIAgentHeader />
+      {/* 헤더 - 모바일에서는 간소화 */}
+      {!isMobile && <AIAgentHeader />}
 
       {/* 메시지 영역 */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-4xl px-4 py-6">
+      <div className="flex-1 overflow-y-auto scroll-touch">
+        <div className={`mx-auto max-w-4xl ${isMobile ? 'px-3 py-4' : 'px-4 py-6'}`}>
           {messages.length === 0 ? (
-            <EmptyState />
+            <EmptyState isMobile={isMobile} />
           ) : (
-            <div className="space-y-6">
+            <div className={isMobile ? 'space-y-4' : 'space-y-6'}>
               {messages.map((message: ChatMessageType) => (
                 <ChatMessage key={message.id} message={message} />
               ))}
@@ -68,13 +70,13 @@ export function AIAgentView() {
         </div>
       </div>
 
-      {/* 입력 영역 */}
-      <div className="border-t border-border bg-sidebar/50">
-        <div className="mx-auto max-w-4xl px-4 py-4">
+      {/* 입력 영역 - 모바일에서 키보드 대응 */}
+      <div className={`border-t border-border bg-sidebar/50 ${isMobile ? 'safe-area-bottom' : ''}`}>
+        <div className={`mx-auto max-w-4xl ${isMobile ? 'px-3 py-2' : 'px-4 py-4'}`}>
           <ChatInput
             onSend={handleSend}
             disabled={!currentProject}
-            placeholder={!currentProject ? '프로젝트를 먼저 선택하세요...' : '메시지를 입력하세요...'}
+            placeholder={!currentProject ? '프로젝트를 먼저 선택하세요...' : isMobile ? '메시지 입력...' : '메시지를 입력하세요...'}
           />
         </div>
       </div>
@@ -85,12 +87,12 @@ export function AIAgentView() {
 /**
  * 빈 상태 (대화가 없을 때)
  */
-function EmptyState() {
+function EmptyState({ isMobile }: { isMobile?: boolean }) {
   return (
-    <div className="flex h-full min-h-[400px] flex-col items-center justify-center text-center">
-      <div className="mb-4 rounded-full bg-primary/10 p-4">
+    <div className={`flex flex-col items-center justify-center text-center ${isMobile ? 'min-h-[300px] py-6' : 'h-full min-h-[400px]'}`}>
+      <div className={`rounded-full bg-primary/10 ${isMobile ? 'mb-3 p-3' : 'mb-4 p-4'}`}>
         <svg
-          className="h-8 w-8 text-primary"
+          className={`text-primary ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -103,26 +105,31 @@ function EmptyState() {
           />
         </svg>
       </div>
-      <h2 className="mb-2 text-xl font-semibold">AI 창작 보조</h2>
-      <p className="mb-6 max-w-md text-muted-foreground">
-        작품의 모든 설정을 파악한 AI와 대화하세요.
-        캐릭터 생성, 줄거리 상담, 복선 관리 등 다양한 창작 활동을 도와드립니다.
+      <h2 className={`font-semibold ${isMobile ? 'mb-1.5 text-lg' : 'mb-2 text-xl'}`}>AI 창작 보조</h2>
+      <p className={`text-muted-foreground ${isMobile ? 'mb-4 px-2 text-sm' : 'mb-6 max-w-md'}`}>
+        {isMobile
+          ? 'AI와 대화하며 창작 활동을 시작하세요'
+          : '작품의 모든 설정을 파악한 AI와 대화하세요. 캐릭터 생성, 줄거리 상담, 복선 관리 등 다양한 창작 활동을 도와드립니다.'
+        }
       </p>
-      <div className="grid max-w-lg gap-3 text-left text-sm">
+      <div className={`grid gap-2 text-left ${isMobile ? 'w-full px-2 text-xs' : 'max-w-lg gap-3 text-sm'}`}>
         <SuggestionCard
           icon="👤"
           title="새 캐릭터 만들기"
-          description="작품 세계관에 맞는 캐릭터를 제안받으세요"
+          description={isMobile ? '세계관에 맞는 캐릭터 제안' : '작품 세계관에 맞는 캐릭터를 제안받으세요'}
+          compact={isMobile}
         />
         <SuggestionCard
           icon="📖"
           title="다음 회차 구상"
-          description="현재 진행 상황을 바탕으로 다음 전개를 상담하세요"
+          description={isMobile ? '다음 전개 상담' : '현재 진행 상황을 바탕으로 다음 전개를 상담하세요'}
+          compact={isMobile}
         />
         <SuggestionCard
           icon="🎭"
           title="복선 관리"
-          description="깔아둔 복선을 정리하고 회수 시점을 논의하세요"
+          description={isMobile ? '복선 정리 및 회수' : '깔아둔 복선을 정리하고 회수 시점을 논의하세요'}
+          compact={isMobile}
         />
       </div>
     </div>
@@ -133,15 +140,16 @@ interface SuggestionCardProps {
   icon: string;
   title: string;
   description: string;
+  compact?: boolean;
 }
 
-function SuggestionCard({ icon, title, description }: SuggestionCardProps) {
+function SuggestionCard({ icon, title, description, compact }: SuggestionCardProps) {
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:border-primary/50">
-      <span className="text-lg">{icon}</span>
-      <div>
-        <h3 className="font-medium">{title}</h3>
-        <p className="text-muted-foreground">{description}</p>
+    <div className={`flex items-start rounded-lg border border-border bg-card transition-colors hover:border-primary/50 ${compact ? 'gap-2 p-2' : 'gap-3 p-3'}`}>
+      <span className={compact ? 'text-base' : 'text-lg'}>{icon}</span>
+      <div className="min-w-0 flex-1">
+        <h3 className={`font-medium ${compact ? 'text-sm' : ''}`}>{title}</h3>
+        <p className={`text-muted-foreground ${compact ? 'truncate' : ''}`}>{description}</p>
       </div>
     </div>
   );

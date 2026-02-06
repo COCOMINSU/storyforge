@@ -60,7 +60,7 @@ export function ChatInput({ disabled, onSend, placeholder }: ChatInputProps) {
   };
 
   return (
-    <div className="border-t border-border p-4">
+    <div>
       <div className="flex items-end gap-2">
         <textarea
           ref={textareaRef}
@@ -71,11 +71,11 @@ export function ChatInput({ disabled, onSend, placeholder }: ChatInputProps) {
           disabled={disabled || isGenerating}
           rows={1}
           className={cn(
-            'flex-1 resize-none rounded-md border border-input bg-background px-3 py-2',
+            'flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2.5',
             'focus:outline-none focus:ring-2 focus:ring-ring',
             'disabled:cursor-not-allowed disabled:opacity-50',
-            'min-h-[40px] max-h-[200px]',
-            'text-sm'
+            'min-h-[44px] max-h-[200px]',
+            'text-base md:text-sm'
           )}
         />
 
@@ -83,10 +83,11 @@ export function ChatInput({ disabled, onSend, placeholder }: ChatInputProps) {
           <button
             onClick={cancelGeneration}
             className={cn(
-              'p-2 rounded-md',
+              'flex-shrink-0 p-2.5 rounded-lg',
               'bg-destructive text-destructive-foreground',
               'hover:bg-destructive/90',
-              'transition-colors'
+              'transition-colors',
+              'min-h-[44px] min-w-[44px] flex items-center justify-center'
             )}
             title="생성 중지"
           >
@@ -97,11 +98,12 @@ export function ChatInput({ disabled, onSend, placeholder }: ChatInputProps) {
             onClick={handleSend}
             disabled={!value.trim() || disabled}
             className={cn(
-              'p-2 rounded-md',
+              'flex-shrink-0 p-2.5 rounded-lg',
               'bg-primary text-primary-foreground',
               'hover:bg-primary/90',
               'disabled:opacity-50 disabled:cursor-not-allowed',
-              'transition-colors'
+              'transition-colors',
+              'min-h-[44px] min-w-[44px] flex items-center justify-center'
             )}
             title="전송"
           >
@@ -110,7 +112,7 @@ export function ChatInput({ disabled, onSend, placeholder }: ChatInputProps) {
         )}
       </div>
 
-      <p className="text-xs text-muted-foreground mt-2">
+      <p className="text-xs text-muted-foreground mt-2 hidden md:block">
         Enter로 전송, Shift+Enter로 줄바꿈
       </p>
     </div>

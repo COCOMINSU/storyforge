@@ -814,9 +814,6 @@ export const useAIStore = create<AIStore>()(
               DEFAULT_CONTEXT_BUDGET.history
             );
 
-            // 응답 처리를 위한 전체 응답 저장
-            let fullResponse = '';
-
             if (config.streamEnabled) {
               // 스트리밍 모드 (Gemini 캐시 사용 시 projectId 전달)
               await sendMessageStream(
@@ -828,7 +825,6 @@ export const useAIStore = create<AIStore>()(
                     console.log('[AIStore] 에이전트 스트리밍 시작');
                   },
                   onToken: (token) => {
-                    fullResponse += token;
                     set((state) => ({
                       streamingContent: state.streamingContent + token,
                     }));

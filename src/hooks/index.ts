@@ -14,3 +14,15 @@ export {
   type UseStreamingMessageOptions,
   type UseStreamingMessageReturn,
 } from './useStreamingMessage';
+
+export {
+  useMediaQuery,
+  useIsMobile,
+  useIsTablet,
+  useIsDesktop,
+  useIsTouchDevice,
+  useBreakpoint,
+  useSwipe,
+  type Breakpoint,
+  type SwipeHandlers,
+} from './useMediaQuery';

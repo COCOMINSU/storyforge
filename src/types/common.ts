@@ -50,6 +50,7 @@ export type ModalType =
   | 'project-search' // 프로젝트 전체 검색 (Ctrl+Shift+F)
   | 'writing-goal' // 글자수 목표 (Ctrl+Shift+O)
   | 'ai-settings' // AI 설정 (API 키, 모델 선택)
+  | 'settings' // 설정 (모바일용)
   | null; // 모달 없음
 
 /**
@@ -58,11 +59,32 @@ export type ModalType =
 export type LeftPanelTab = 'structure' | 'world';
 
 /**
- * 테마
+ * 테마 ID
  *
  * 다크 모드가 기본값입니다.
+ * - dark-*: 다크 테마 계열
+ * - light-*: 라이트 테마 계열 (파스텔)
+ * - season-*: 시즌 테마 (바다, 크리스마스)
+ * - system: 시스템 설정 따름
  */
-export type Theme = 'dark' | 'light' | 'system';
+export type ThemeId =
+  // 다크 테마
+  | 'dark-default'
+  | 'dark-midnight'
+  | 'dark-forest'
+  | 'dark-purple'
+  // 라이트 테마 (파스텔)
+  | 'light-default'
+  | 'light-lavender'
+  | 'light-mint'
+  // 시즌 테마
+  | 'season-ocean'
+  | 'season-christmas'
+  // 시스템
+  | 'system';
+
+/** 레거시 호환을 위한 Theme 별칭 */
+export type Theme = ThemeId;
 
 /**
  * 앱 모드

@@ -4,13 +4,19 @@
  * 2가지 모드:
  * - 집필 모드: 좌측 패널 + 에디터
  * - AI Agent 모드: 좌측 패널 + AI 전체화면 채팅
+ *
+ * 반응형:
+ * - 데스크톱: 기존 레이아웃
+ * - 모바일: 하단 탭바 + 풀스크린 뷰
  */
 
 import { useState, useEffect } from 'react';
 import { useUIStore } from '@/stores';
+import { useIsMobile } from '@/hooks';
 import { LeftPanel } from './LeftPanel';
 import { EditorPane } from './EditorPane';
 import { StatusBar } from './StatusBar';
+import { MobileLayout } from './MobileLayout';
 import { AIAgentView } from '@/components/ai';
 import { formatShortcut } from '@/lib';
 
@@ -21,6 +27,9 @@ export function AppLayout() {
     leftPanelWidth,
     isFocusMode,
   } = useUIStore();
+
+  // 모바일 감지
+  const isMobile = useIsMobile();
 
   // 집중 모드 진입 시 안내 메시지 표시
   const [showFocusHint, setShowFocusHint] = useState(false);
@@ -33,6 +42,17 @@ export function AppLayout() {
     }
   }, [isFocusMode]);
 
+  // 모바일 레이아웃
+  if (isMobile) {
+    return (
+      <MobileLayout
+        leftPanel={<LeftPanel />}
+        mainContent={appMode === 'writing' ? <EditorPane /> : <AIAgentView />}
+      />
+    );
+  }
+
+  // 데스크톱 레이아웃
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       {/* 메인 컨텐츠 영역 */}
