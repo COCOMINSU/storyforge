@@ -277,44 +277,44 @@
 
   /* ============================================
    * 시즌 테마: 크리스마스 (겨울) 🎅
-   * 새하얀 눈밭과 빨강/초록 포인트
+   * Cozy Christmas Night - 따뜻한 버건디 & 앰버
+   * Ref: christmas_webdesign_1.webp
    * ============================================ */
   .theme-season-christmas {
-    /* 새하얀 눈 배경 */
-    --background: 150 30% 97%;
-    --foreground: 150 50% 15%;
-    /* 카드는 순백색 */
-    --card: 0 0% 100%;
-    --card-foreground: 150 50% 15%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 150 50% 15%;
-    /* 산타/루돌프 빨간색 primary */
-    --primary: 0 80% 55%;
-    --primary-foreground: 0 0% 100%;
-    /* secondary는 연한 초록색 (AI 메시지 배경) */
-    --secondary: 145 40% 90%;
-    --secondary-foreground: 150 50% 15%;
-    /* muted는 연한 회색 (눈 그림자) */
-    --muted: 150 20% 93%;
-    --muted-foreground: 150 20% 40%;
-    /* 초록 악센트 */
-    --accent: 145 50% 85%;
-    --accent-foreground: 150 50% 15%;
-    --destructive: 0 85% 55%;
+    /* 따뜻한 다크 버건디-블랙 배경 */
+    --background: 350 25% 6%;
+    --foreground: 30 30% 92%;
+    /* 카드 - 약간 밝은 마룬 */
+    --card: 350 20% 10%;
+    --card-foreground: 30 30% 92%;
+    --popover: 350 18% 11%;
+    --popover-foreground: 30 30% 92%;
+    /* 따뜻한 앰버 primary (창문 불빛) */
+    --primary: 28 80% 55%;
+    --primary-foreground: 350 30% 6%;
+    /* secondary - 어두운 따뜻한 표면 */
+    --secondary: 350 18% 13%;
+    --secondary-foreground: 30 30% 92%;
+    /* muted */
+    --muted: 350 15% 12%;
+    --muted-foreground: 350 10% 50%;
+    /* 딥 크림슨/베리 레드 악센트 */
+    --accent: 355 60% 38%;
+    --accent-foreground: 30 30% 92%;
+    --destructive: 0 65% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 150 20% 88%;
-    --input: 150 20% 93%;
-    /* 골드 링 (장식) */
-    --ring: 45 100% 50%;
-    /* 사이드바도 흰 눈 배경과 동일 */
-    --sidebar: 150 30% 97%;
-    --sidebar-foreground: 150 50% 15%;
-    --selection: 0 80% 55%;
+    --border: 350 18% 15%;
+    --input: 350 15% 12%;
+    /* 앰버 링 */
+    --ring: 28 80% 55%;
+    --sidebar: 350 25% 5%;
+    --sidebar-foreground: 30 30% 92%;
+    --selection: 28 80% 50%;
 
-    --status-draft: 150 30% 55%;
-    --status-writing: 45 95% 50%;
-    --status-complete: 145 60% 40%;
-    --status-published: 0 80% 55%;
+    --status-draft: 350 15% 50%;
+    --status-writing: 28 80% 55%;
+    --status-complete: 145 50% 40%;
+    --status-published: 28 70% 55%;
   }
 
   * {
@@ -490,7 +490,7 @@ html.theme-season-ocean {
   background-color: hsl(200 30% 98%);
   background-image:
     /* 메인 장식 패턴 - 조개, 불가사리, 물고기 (선명하게) */
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3C!-- 큰 불가사리 --%3E%3Cpath fill='%23FF6B35' fill-opacity='0.4' d='M80,60 L88,85 L115,85 L93,100 L100,125 L80,108 L60,125 L67,100 L45,85 L72,85 Z'/%3E%3C!-- 조개껍데기 1 --%3E%3Cpath fill='%2300ACC1' fill-opacity='0.35' d='M200,50 Q210,25 230,35 Q250,25 260,50 Q250,60 230,70 Q210,60 200,50 Z'/%3E%3Cpath stroke='%23006064' stroke-width='1.5' stroke-opacity='0.3' fill='none' d='M210,45 L230,65 M230,40 L230,65 M250,45 L230,65'/%3E%3C!-- 물고기 --%3E%3Cellipse fill='%23FFB74D' fill-opacity='0.5' cx='150' cy='150' rx='25' ry='12'/%3E%3Cpath fill='%23FFB74D' fill-opacity='0.5' d='M120,150 L105,135 L105,165 Z'/%3E%3Ccircle fill='%23333' fill-opacity='0.6' cx='168' cy='148' r='3'/%3E%3C!-- 작은 불가사리 --%3E%3Cpath fill='%23FF8A65' fill-opacity='0.35' d='M250,200 L255,215 L272,215 L258,225 L263,240 L250,230 L237,240 L242,225 L228,215 L245,215 Z'/%3E%3C!-- 조개껍데기 2 --%3E%3Cpath fill='%2326C6DA' fill-opacity='0.4' d='M40,220 Q50,195 70,205 Q90,195 100,220 Q90,230 70,240 Q50,230 40,220 Z'/%3E%3C!-- 거품들 --%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.25' cx='180' cy='250' r='8'/%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.2' cx='195' cy='265' r='5'/%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.3' cx='280' cy='100' r='6'/%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.2' cx='30' cy='120' r='10'/%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.15' cx='45' cy='135' r='5'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3C!-- 큰 불가사리 --%3E%3Cpath fill='%23FF6B35' fill-opacity='0.4' d='M80,60 L88,85 L115,85 L93,100 L100,125 L80,108 L60,125 L67,100 L45,85 L72,85 Z'/%3E%3C!-- 조개껍데기 1 --%3E%3Cpath fill='%2300ACC1' fill-opacity='0.45' d='M200,50 Q210,25 230,35 Q250,25 260,50 Q250,60 230,70 Q210,60 200,50 Z'/%3E%3Cpath stroke='%23006064' stroke-width='1.5' stroke-opacity='0.3' fill='none' d='M210,45 L230,65 M230,40 L230,65 M250,45 L230,65'/%3E%3C!-- 물고기 --%3E%3Cellipse fill='%23FFB74D' fill-opacity='0.5' cx='150' cy='150' rx='25' ry='12'/%3E%3Cpath fill='%23FFB74D' fill-opacity='0.5' d='M120,150 L105,135 L105,165 Z'/%3E%3Ccircle fill='%23333' fill-opacity='0.6' cx='168' cy='148' r='3'/%3E%3C!-- 작은 불가사리 --%3E%3Cpath fill='%23FF8A65' fill-opacity='0.45' d='M250,200 L255,215 L272,215 L258,225 L263,240 L250,230 L237,240 L242,225 L228,215 L245,215 Z'/%3E%3C!-- 조개껍데기 2 --%3E%3Cpath fill='%2326C6DA' fill-opacity='0.4' d='M40,220 Q50,195 70,205 Q90,195 100,220 Q90,230 70,240 Q50,230 40,220 Z'/%3E%3C!-- 거품들 --%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.25' cx='180' cy='250' r='8'/%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.2' cx='195' cy='265' r='5'/%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.3' cx='280' cy='100' r='6'/%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.2' cx='30' cy='120' r='10'/%3E%3Ccircle fill='%2300BCD4' fill-opacity='0.15' cx='45' cy='135' r='5'/%3E%3C/svg%3E"),
     /* 하단 파도 - 더 선명하게 */
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 250' preserveAspectRatio='none'%3E%3Cpath fill='%2300ACC1' fill-opacity='0.5' d='M0,120 C200,180 400,60 600,120 C800,180 1000,60 1200,120 C1300,150 1400,100 1440,130 L1440,250 L0,250 Z'/%3E%3Cpath fill='%2300838F' fill-opacity='0.6' d='M0,160 C150,100 350,200 550,140 C750,80 950,180 1150,140 C1300,110 1400,160 1440,150 L1440,250 L0,250 Z'/%3E%3Cpath fill='%23006064' fill-opacity='0.4' d='M0,200 C200,170 400,230 600,190 C800,150 1000,210 1200,180 L1440,200 L1440,250 L0,250 Z'/%3E%3C!-- 파도 흰 포말 --%3E%3Cpath fill='none' stroke='white' stroke-width='3' stroke-opacity='0.6' d='M50,155 Q100,140 150,155 Q200,170 250,155'/%3E%3Cpath fill='none' stroke='white' stroke-width='2' stroke-opacity='0.5' d='M400,135 Q450,120 500,135 Q550,150 600,135'/%3E%3Cpath fill='none' stroke='white' stroke-width='3' stroke-opacity='0.55' d='M800,150 Q850,135 900,150 Q950,165 1000,150'/%3E%3Cpath fill='none' stroke='white' stroke-width='2' stroke-opacity='0.5' d='M1150,140 Q1200,125 1250,140 Q1300,155 1350,140'/%3E%3C/svg%3E");
   background-position:
@@ -518,14 +518,14 @@ html.theme-season-ocean .bg-sidebar {
   background-color: hsl(200 30% 96% / 0.8);
 }
 
-/* 크리스마스 테마 배경 - 다크 배경에 풍성한 장식 */
+/* 크리스마스 테마 배경 - Cozy Christmas Night (산타, 루돌프, 눈사람) */
 html.theme-season-christmas {
-  background-color: hsl(220 30% 8%);
+  background-color: hsl(350 25% 6%);
   background-image:
-    /* 눈송이 패턴 - 밝은 흰색/파란색 (다크 배경용) */
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3C!-- 큰 눈송이 1 --%3E%3Cg stroke='%23E3F2FD' stroke-width='2' stroke-opacity='0.6' fill='none'%3E%3Cpath d='M50,20 L50,80'/%3E%3Cpath d='M20,50 L80,50'/%3E%3Cpath d='M28,28 L72,72'/%3E%3Cpath d='M28,72 L72,28'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23BBDEFB' fill-opacity='0.5'/%3E%3Ccircle cx='50' cy='20' r='4' fill='white' fill-opacity='0.6'/%3E%3Ccircle cx='50' cy='80' r='4' fill='white' fill-opacity='0.6'/%3E%3Ccircle cx='20' cy='50' r='4' fill='white' fill-opacity='0.6'/%3E%3Ccircle cx='80' cy='50' r='4' fill='white' fill-opacity='0.6'/%3E%3C/g%3E%3C!-- 작은 눈송이들 --%3E%3Ccircle fill='white' fill-opacity='0.5' cx='150' cy='30' r='5'/%3E%3Ccircle fill='white' fill-opacity='0.45' cx='120' cy='150' r='4'/%3E%3Ccircle fill='white' fill-opacity='0.4' cx='180' cy='120' r='6'/%3E%3Ccircle fill='white' fill-opacity='0.5' cx='30' cy='170' r='3'/%3E%3Ccircle fill='white' fill-opacity='0.45' cx='170' cy='180' r='4'/%3E%3C!-- 빨간 장식볼 --%3E%3Ccircle fill='%23EF5350' fill-opacity='0.8' cx='140' cy='80' r='10'/%3E%3Cellipse fill='white' fill-opacity='0.5' cx='136' cy='76' rx='3' ry='2'/%3E%3C!-- 초록 장식볼 --%3E%3Ccircle fill='%2366BB6A' fill-opacity='0.75' cx='90' cy='120' r='8'/%3E%3Cellipse fill='white' fill-opacity='0.45' cx='87' cy='117' rx='2' ry='1.5'/%3E%3C!-- 금색 별 --%3E%3Cpath fill='%23FFD700' fill-opacity='0.85' d='M160,160 L163,170 L174,170 L165,177 L169,188 L160,180 L151,188 L155,177 L146,170 L157,170 Z'/%3E%3C/svg%3E"),
-    /* 하단 크리스마스 장식 - 트리, 선물, 사탕지팡이 (밝게) */
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 220'%3E%3C!-- 왼쪽 큰 트리 --%3E%3Cpolygon fill='%232E7D32' fill-opacity='0.9' points='100,200 150,200 125,160'/%3E%3Cpolygon fill='%2343A047' fill-opacity='0.9' points='90,165 160,165 125,110'/%3E%3Cpolygon fill='%2366BB6A' fill-opacity='0.85' points='95,115 155,115 125,60'/%3E%3Crect fill='%23A1887F' fill-opacity='0.9' x='115' y='200' width='20' height='20'/%3E%3C!-- 트리 장식 --%3E%3Ccircle fill='%23EF5350' fill-opacity='0.95' cx='115' cy='140' r='6'/%3E%3Ccircle fill='%23FFD700' fill-opacity='0.95' cx='140' cy='155' r='5'/%3E%3Ccircle fill='%2364B5F6' fill-opacity='0.9' cx='120' cy='175' r='5'/%3E%3Ccircle fill='%23EF5350' fill-opacity='0.9' cx='135' cy='125' r='4'/%3E%3Ccircle fill='%23FFD700' fill-opacity='0.95' cx='110' cy='100' r='4'/%3E%3C!-- 트리 꼭대기 별 --%3E%3Cpath fill='%23FFD700' fill-opacity='1' d='M125,55 L128,65 L139,65 L130,72 L134,83 L125,75 L116,83 L120,72 L111,65 L122,65 Z'/%3E%3C!-- 중앙 선물상자 --%3E%3Crect fill='%23EF5350' fill-opacity='0.9' x='270' y='170' width='60' height='50'/%3E%3Crect fill='%23FFD700' fill-opacity='0.95' x='295' y='170' width='10' height='50'/%3E%3Crect fill='%23FFD700' fill-opacity='0.95' x='270' y='185' width='60' height='10'/%3E%3Cpath fill='%23FFD700' fill-opacity='1' d='M300,170 Q280,150 300,155 Q320,150 300,170'/%3E%3C!-- 사탕지팡이 --%3E%3Cpath stroke='%23EF5350' stroke-width='8' stroke-opacity='0.95' fill='none' d='M220,220 L220,160 Q220,140 240,140'/%3E%3Cpath stroke='white' stroke-width='8' stroke-opacity='0.8' stroke-dasharray='12 12' fill='none' d='M220,220 L220,160 Q220,140 240,140'/%3E%3C!-- 오른쪽 작은 트리 --%3E%3Cpolygon fill='%232E7D32' fill-opacity='0.85' points='480,200 520,200 500,165'/%3E%3Cpolygon fill='%2343A047' fill-opacity='0.85' points='475,170 525,170 500,130'/%3E%3Cpolygon fill='%2366BB6A' fill-opacity='0.8' points='480,135 520,135 500,95'/%3E%3Crect fill='%23A1887F' fill-opacity='0.85' x='492' y='200' width='16' height='15'/%3E%3C!-- 오른쪽 트리 장식 --%3E%3Ccircle fill='%23FFD700' fill-opacity='0.9' cx='495' cy='150' r='5'/%3E%3Ccircle fill='%23EF5350' fill-opacity='0.9' cx='510' cy='165' r='4'/%3E%3Ccircle fill='%2364B5F6' fill-opacity='0.85' cx='490' cy='180' r='4'/%3E%3Cpath fill='%23FFD700' fill-opacity='1' d='M500,90 L502,97 L510,97 L504,102 L506,110 L500,105 L494,110 L496,102 L490,97 L498,97 Z'/%3E%3C!-- 작은 선물상자들 --%3E%3Crect fill='%2366BB6A' fill-opacity='0.85' x='380' y='190' width='35' height='30'/%3E%3Crect fill='%23EF5350' fill-opacity='0.9' x='393' y='190' width='8' height='30'/%3E%3Crect fill='%23EF5350' fill-opacity='0.9' x='380' y='200' width='35' height='8'/%3E%3Crect fill='%2364B5F6' fill-opacity='0.8' x='430' y='195' width='30' height='25'/%3E%3Crect fill='%23FFD700' fill-opacity='0.9' x='442' y='195' width='6' height='25'/%3E%3C!-- 눈 쌓인 효과 --%3E%3Cpath fill='white' fill-opacity='0.85' d='M0,220 Q30,210 60,220 Q90,215 120,220 Q150,212 180,220 Q210,218 240,220 Q270,212 300,220 Q330,215 360,220 Q390,210 420,220 Q450,218 480,220 Q510,212 540,220 Q570,218 600,220 L600,220 L0,220 Z'/%3E%3C/svg%3E");
+    /* 산타 + 루돌프 + 눈사람 캐릭터 패턴 + 눈꽃 */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500'%3E%3Cg transform='translate(100,110)' opacity='0.45'%3E%3Crect x='-15' y='12' width='30' height='28' rx='5' fill='%23C0392B'/%3E%3Crect x='-15' y='28' width='30' height='5' fill='%232C3E50'/%3E%3Crect x='-3' y='26' width='6' height='9' rx='1' fill='%23F4D03F'/%3E%3Ccircle r='14' fill='%23FDEBD0'/%3E%3Cpath d='M-16,-3 L0,-32 L16,-3' fill='%23C0392B'/%3E%3Crect x='-17' y='-6' width='34' height='5' rx='2.5' fill='white'/%3E%3Ccircle cy='-32' r='5' fill='white'/%3E%3Cellipse cy='10' rx='11' ry='7' fill='white'/%3E%3Ccircle cx='-5' cy='-2' r='1.8' fill='%232C3E50'/%3E%3Ccircle cx='5' cy='-2' r='1.8' fill='%232C3E50'/%3E%3C/g%3E%3Cg transform='translate(350,290)' opacity='0.45'%3E%3Cellipse cy='8' rx='22' ry='16' fill='%23B8835A'/%3E%3Ccircle cx='24' cy='-6' r='11' fill='%23C99B6D'/%3E%3Cpath d='M30,-17 L36,-33 M33,-26 L40,-24' stroke='%238B6B3A' stroke-width='2' fill='none'/%3E%3Cpath d='M18,-17 L12,-33 M15,-26 L8,-24' stroke='%238B6B3A' stroke-width='2' fill='none'/%3E%3Ccircle cx='33' cy='-4' r='5' fill='%23E74C3C'/%3E%3Ccircle cx='27' cy='-9' r='1.8' fill='%232C3E50'/%3E%3Cline x1='-10' y1='24' x2='-12' y2='42' stroke='%238B6B3A' stroke-width='3'/%3E%3Cline x1='8' y1='24' x2='6' y2='42' stroke='%238B6B3A' stroke-width='3'/%3E%3Cline x1='-2' y1='24' x2='-4' y2='42' stroke='%238B6B3A' stroke-width='3'/%3E%3Cline x1='16' y1='22' x2='14' y2='40' stroke='%238B6B3A' stroke-width='3'/%3E%3C/g%3E%3Cg transform='translate(130,380)' opacity='0.45'%3E%3Ccircle cy='22' r='18' fill='white' fill-opacity='0.85'/%3E%3Ccircle r='13' fill='white' fill-opacity='0.85'/%3E%3Ccircle cy='-18' r='10' fill='white' fill-opacity='0.85'/%3E%3Crect x='-7' y='-34' width='14' height='10' fill='%232C3E50'/%3E%3Crect x='-11' y='-26' width='22' height='3' fill='%232C3E50'/%3E%3Cpath d='M-10,-9 Q0,-6 10,-9' stroke='%23C0392B' stroke-width='3.5' fill='none'/%3E%3Cline x1='7' y1='-9' x2='10' y2='-1' stroke='%23C0392B' stroke-width='2.5'/%3E%3Ccircle cx='-3' cy='-20' r='1.5' fill='%232C3E50'/%3E%3Ccircle cx='3' cy='-20' r='1.5' fill='%232C3E50'/%3E%3Cpath d='M0,-16 L7,-14' stroke='%23E67E22' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cy='-2' r='1.8' fill='%232C3E50'/%3E%3Ccircle cy='8' r='1.8' fill='%232C3E50'/%3E%3Ccircle cy='18' r='1.8' fill='%232C3E50'/%3E%3C/g%3E%3Cg fill='white' opacity='0.22'%3E%3Ccircle cx='50' cy='50' r='2'/%3E%3Ccircle cx='250' cy='70' r='1.5'/%3E%3Ccircle cx='420' cy='130' r='2'/%3E%3Ccircle cx='60' cy='220' r='1.5'/%3E%3Ccircle cx='300' cy='180' r='2'/%3E%3Ccircle cx='460' cy='400' r='1.5'/%3E%3Ccircle cx='200' cy='460' r='2'/%3E%3Ccircle cx='380' cy='480' r='1.5'/%3E%3Ccircle cx='470' cy='60' r='1.5'/%3E%3Ccircle cx='30' cy='460' r='2'/%3E%3Ccircle cx='450' cy='250' r='1.5'/%3E%3Ccircle cx='280' cy='440' r='2'/%3E%3Ccircle cx='160' cy='180' r='1.5'/%3E%3Ccircle cx='340' cy='80' r='1'/%3E%3Ccircle cx='490' cy='320' r='1.5'/%3E%3Ccircle cx='230' cy='320' r='1'/%3E%3C/g%3E%3Cg stroke='white' stroke-width='1' opacity='0.16' fill='none'%3E%3Cg transform='translate(280,50)'%3E%3Cline x1='0' y1='-8' x2='0' y2='8'/%3E%3Cline x1='-7' y1='-4' x2='7' y2='4'/%3E%3Cline x1='-7' y1='4' x2='7' y2='-4'/%3E%3C/g%3E%3Cg transform='translate(420,200)'%3E%3Cline x1='0' y1='-6' x2='0' y2='6'/%3E%3Cline x1='-5' y1='-3' x2='5' y2='3'/%3E%3Cline x1='-5' y1='3' x2='5' y2='-3'/%3E%3C/g%3E%3Cg transform='translate(60,300)'%3E%3Cline x1='0' y1='-7' x2='0' y2='7'/%3E%3Cline x1='-6' y1='-3' x2='6' y2='3'/%3E%3Cline x1='-6' y1='3' x2='6' y2='-3'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%23F4D03F' opacity='0.2'%3E%3Cpath d='M320,120 l3,8 -3,8 -3,-8z'/%3E%3Cpath d='M180,250 l3,8 -3,8 -3,-8z'/%3E%3Cpath d='M440,360 l2,6 -2,6 -2,-6z'/%3E%3C/g%3E%3C/svg%3E"),
+    /* 하단 따뜻한 앰버/버건디 빛 효과 */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 100' preserveAspectRatio='none'%3E%3Ccircle fill='%23D4781E' opacity='0.06' cx='100' cy='60' r='60'/%3E%3Ccircle fill='%23C0392B' opacity='0.05' cx='300' cy='70' r='55'/%3E%3Ccircle fill='%23D4781E' opacity='0.07' cx='500' cy='55' r='65'/%3E%3Ccircle fill='%23C0392B' opacity='0.05' cx='700' cy='65' r='50'/%3E%3Ccircle fill='%23D4781E' opacity='0.06' cx='900' cy='60' r='60'/%3E%3Ccircle fill='%23C0392B' opacity='0.05' cx='1100' cy='70' r='55'/%3E%3C/svg%3E");
   background-position:
     top left,
     bottom center;
@@ -533,8 +533,8 @@ html.theme-season-christmas {
     repeat,
     repeat-x;
   background-size:
-    200px 200px,
-    600px 200px;
+    500px 500px,
+    100% 120px;
   background-attachment: fixed;
 }
 
@@ -542,11 +542,11 @@ html.theme-season-christmas body {
   background-color: transparent;
 }
 
-/* 크리스마스 테마 - 내부 컨테이너 반투명 처리 (다크 배경) */
+/* 크리스마스 테마 - 내부 컨테이너 반투명 (따뜻한 버건디-블랙) */
 html.theme-season-christmas .bg-background {
-  background-color: hsl(220 30% 10% / 0.85);
+  background-color: hsl(350 25% 6% / 0.8);
 }
 
 html.theme-season-christmas .bg-sidebar {
-  background-color: hsl(220 30% 12% / 0.9);
+  background-color: hsl(350 22% 7% / 0.85);
 }

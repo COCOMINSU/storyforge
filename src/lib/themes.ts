@@ -318,40 +318,39 @@ const seasonOcean: ThemeDefinition = {
 const seasonChristmas: ThemeDefinition = {
   id: 'season-christmas',
   name: '크리스마스',
-  description: '겨울 밤하늘과 빨강/초록 포인트',
+  description: '따뜻한 겨울 밤의 버건디 & 앰버',
   category: 'season',
-  isDark: true, // 다크 테마로 변경
+  isDark: true,
   emoji: '🎅',
   colors: {
-    // 깊은 겨울 밤하늘 배경 (패턴이 잘 보이도록)
-    background: '220 30% 8%',
-    foreground: '0 0% 95%',
-    // 카드는 약간 밝은 어두운 색
-    card: '220 25% 12%',
-    cardForeground: '0 0% 95%',
-    popover: '220 25% 12%',
-    popoverForeground: '0 0% 95%',
-    // 산타/루돌프 빨간색 primary (밝게)
-    primary: '0 75% 55%',
-    primaryForeground: '0 0% 100%',
-    // secondary는 진한 초록색 (AI 메시지 배경)
-    secondary: '145 40% 18%',
-    secondaryForeground: '0 0% 95%',
-    // muted는 어두운 회색
-    muted: '220 20% 15%',
-    mutedForeground: '220 10% 60%',
-    // 초록 악센트
-    accent: '145 50% 25%',
-    accentForeground: '0 0% 95%',
-    destructive: '0 70% 45%',
+    // 따뜻한 다크 버건디-블랙 배경
+    background: '350 25% 6%',
+    foreground: '30 30% 92%',
+    // 카드 - 약간 밝은 마룬
+    card: '350 20% 10%',
+    cardForeground: '30 30% 92%',
+    popover: '350 18% 11%',
+    popoverForeground: '30 30% 92%',
+    // 따뜻한 앰버 primary (창문 불빛)
+    primary: '28 80% 55%',
+    primaryForeground: '350 30% 6%',
+    // 어두운 따뜻한 표면
+    secondary: '350 18% 13%',
+    secondaryForeground: '30 30% 92%',
+    // muted
+    muted: '350 15% 12%',
+    mutedForeground: '350 10% 50%',
+    // 딥 크림슨/베리 레드 악센트
+    accent: '355 60% 38%',
+    accentForeground: '30 30% 92%',
+    destructive: '0 65% 45%',
     destructiveForeground: '0 0% 100%',
-    border: '220 20% 18%',
-    input: '220 20% 15%',
-    // 골드 링 (장식)
-    ring: '45 100% 50%',
-    // 사이드바도 어두운 배경
-    sidebar: '220 30% 8%',
-    sidebarForeground: '0 0% 95%',
+    border: '350 18% 15%',
+    input: '350 15% 12%',
+    // 앰버 링
+    ring: '28 80% 55%',
+    sidebar: '350 25% 5%',
+    sidebarForeground: '30 30% 92%',
   },
 };
 
