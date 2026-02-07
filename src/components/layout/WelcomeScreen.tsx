@@ -10,26 +10,30 @@
 import { useProjectStore, useUIStore } from '@/stores';
 import { formatRelativeTime } from '@/lib';
 import { UserMenu } from '@/components/auth';
+import { useIsMobile } from '@/hooks';
 
 export function WelcomeScreen() {
   const { projects, openProject, isLoading } = useProjectStore();
   const { openModal } = useUIStore();
+  const isMobile = useIsMobile();
 
   const recentProjects = projects.slice(0, 5);
 
   return (
-    <div className="flex h-screen flex-col bg-background">
-      {/* 헤더 */}
-      <header className="flex items-center justify-between border-b border-border p-4">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">Storyforge</h1>
-          <p className="text-sm text-muted-foreground">
-            웹소설 작가를 위한 창작 도구
-          </p>
-        </div>
-        {/* 로그인/사용자 메뉴 */}
-        <UserMenu />
-      </header>
+    <div className={isMobile ? 'flex h-full flex-col bg-background' : 'flex h-screen flex-col bg-background'}>
+      {/* 헤더 (데스크톱만) */}
+      {!isMobile && (
+        <header className="flex items-center justify-between border-b border-border p-4">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Storyforge</h1>
+            <p className="text-sm text-muted-foreground">
+              웹소설 작가를 위한 창작 도구
+            </p>
+          </div>
+          {/* 로그인/사용자 메뉴 */}
+          <UserMenu />
+        </header>
+      )}
 
       {/* 메인 컨텐츠 */}
       <main className="flex flex-1 flex-col items-center justify-center p-8">
@@ -107,12 +111,14 @@ export function WelcomeScreen() {
         </div>
       </main>
 
-      {/* 푸터 */}
-      <footer className="border-t border-border p-4 text-center text-xs text-muted-foreground">
-        <p>
-          Storyforge v0.1.0 · 로그인하면 클라우드에 자동 동기화됩니다
-        </p>
-      </footer>
+      {/* 푸터 (데스크톱만) */}
+      {!isMobile && (
+        <footer className="border-t border-border p-4 text-center text-xs text-muted-foreground">
+          <p>
+            Storyforge v0.1.0 · 로그인하면 클라우드에 자동 동기화됩니다
+          </p>
+        </footer>
+      )}
     </div>
   );
 }

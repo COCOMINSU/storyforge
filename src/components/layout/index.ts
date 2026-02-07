@@ -3,7 +3,7 @@
  */
 
 export { AppLayout } from './AppLayout';
-export { LeftPanel } from './LeftPanel';
+export { LeftPanel, StructureTab } from './LeftPanel';
 export { EditorPane } from './EditorPane';
 export { RightPanel } from './RightPanel';
 export { StatusBar } from './StatusBar';
@@ -11,5 +11,7 @@ export { WelcomeScreen } from './WelcomeScreen';
 
 // 모바일 레이아웃
 export { MobileLayout } from './MobileLayout';
-export { MobileNav } from './MobileNav';
-export { MobileDrawer } from './MobileDrawer';
+export { MobileHeader } from './MobileHeader';
+export { MobileTopPanel } from './MobileTopPanel';
+export { MobileBottomBar } from './MobileBottomBar';
+export { MobileUserDropdown } from './MobileUserDropdown';

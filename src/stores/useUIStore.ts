@@ -59,11 +59,11 @@ interface UIState {
   /** 포커스 모드 (패널 숨김) */
   isFocusMode: boolean;
 
-  /** 모바일 드로어 열림 상태 */
-  isMobileDrawerOpen: boolean;
+  /** 모바일 상단 패널 열림 상태 */
+  isMobileTopPanelOpen: boolean;
 
-  /** 모바일 설정 화면 열림 상태 */
-  isMobileSettingsOpen: boolean;
+  /** 모바일 유저 드롭다운 열림 상태 */
+  isMobileUserDropdownOpen: boolean;
 }
 
 interface UIActions {
@@ -118,14 +118,17 @@ interface UIActions {
   /** 포커스 모드 설정 */
   setFocusMode: (enabled: boolean) => void;
 
-  /** 모바일 드로어 열기 (탭 지정) */
-  openMobileDrawer: (tab: LeftPanelTab) => void;
+  /** 모바일 상단 패널 토글 */
+  toggleMobileTopPanel: () => void;
 
-  /** 모바일 드로어 닫기 */
-  closeMobileDrawer: () => void;
+  /** 모바일 상단 패널 닫기 */
+  closeMobileTopPanel: () => void;
 
-  /** 모바일 설정 화면 열기/닫기 */
-  setMobileSettingsOpen: (open: boolean) => void;
+  /** 모바일 유저 드롭다운 토글 */
+  toggleMobileUserDropdown: () => void;
+
+  /** 모바일 유저 드롭다운 닫기 */
+  closeMobileUserDropdown: () => void;
 }
 
 type UIStore = UIState & UIActions;
@@ -182,8 +185,8 @@ export const useUIStore = create<UIStore>()(
         toasts: [],
         isFullscreen: false,
         isFocusMode: false,
-        isMobileDrawerOpen: false,
-        isMobileSettingsOpen: false,
+        isMobileTopPanelOpen: false,
+        isMobileUserDropdownOpen: false,
 
         // 앱 모드
         setAppMode: (mode) => {
@@ -329,26 +332,28 @@ export const useUIStore = create<UIStore>()(
           });
         },
 
-        // 모바일 드로어
-        openMobileDrawer: (tab) => {
-          set({
-            isMobileDrawerOpen: true,
-            leftPanelTab: tab,
-            appMode: 'writing',
-            isMobileSettingsOpen: false,
-          });
+        // 모바일 상단 패널
+        toggleMobileTopPanel: () => {
+          set((state) => ({
+            isMobileTopPanelOpen: !state.isMobileTopPanelOpen,
+            isMobileUserDropdownOpen: false,
+          }));
         },
 
-        closeMobileDrawer: () => {
-          set({ isMobileDrawerOpen: false });
+        closeMobileTopPanel: () => {
+          set({ isMobileTopPanelOpen: false });
         },
 
-        // 모바일 설정
-        setMobileSettingsOpen: (open) => {
-          set({
-            isMobileSettingsOpen: open,
-            isMobileDrawerOpen: false,
-          });
+        // 모바일 유저 드롭다운
+        toggleMobileUserDropdown: () => {
+          set((state) => ({
+            isMobileUserDropdownOpen: !state.isMobileUserDropdownOpen,
+            isMobileTopPanelOpen: false,
+          }));
+        },
+
+        closeMobileUserDropdown: () => {
+          set({ isMobileUserDropdownOpen: false });
         },
       }),
       {

@@ -7,10 +7,11 @@
 import { useEffect, useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { WelcomeScreen } from '@/components/layout/WelcomeScreen';
+import { MobileLayout } from '@/components/layout/MobileLayout';
 import { ModalContainer, ErrorBoundary } from '@/components/common';
 import { initializeDatabase } from '@/db';
 import { useProjectStore, useDocumentStore, useWorldStore, useAuthStore, initializeTheme } from '@/stores';
-import { useKeyboardShortcuts } from '@/hooks';
+import { useKeyboardShortcuts, useIsMobile } from '@/hooks';
 
 function App() {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -23,6 +24,9 @@ function App() {
 
   // 전역 키보드 단축키 등록
   useKeyboardShortcuts();
+
+  // 모바일 감지
+  const isMobile = useIsMobile();
 
   // 앱 초기화
   useEffect(() => {
@@ -103,9 +107,15 @@ function App() {
   }
 
   // 프로젝트가 열려있으면 에디터 표시, 아니면 환영 화면
+  const welcomeScreen = isMobile ? (
+    <MobileLayout mainContent={<WelcomeScreen />} />
+  ) : (
+    <WelcomeScreen />
+  );
+
   return (
     <ErrorBoundary>
-      {currentProject ? <AppLayout /> : <WelcomeScreen />}
+      {currentProject ? <AppLayout /> : welcomeScreen}
       <ModalContainer />
     </ErrorBoundary>
   );

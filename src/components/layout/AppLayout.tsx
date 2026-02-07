@@ -46,7 +46,6 @@ export function AppLayout() {
   if (isMobile) {
     return (
       <MobileLayout
-        leftPanel={<LeftPanel />}
         mainContent={appMode === 'writing' ? <EditorPane /> : <AIAgentView />}
       />
     );

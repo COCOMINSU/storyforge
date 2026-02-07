@@ -287,7 +287,7 @@ export function LeftPanel() {
 /**
  * 구조 탭 - 문서 트리 뷰
  */
-function StructureTab() {
+export function StructureTab() {
   const { addVolume } = useDocumentStore();
   const { currentProject } = useProjectStore();
 
