@@ -42,6 +42,11 @@
 
     --radius: 0.5rem;
 
+    /* 반응형 레이아웃 (데스크톱 스케일링) */
+    --editor-max-w: clamp(720px, 50vw, 960px);
+    --chat-max-w: clamp(820px, 55vw, 1100px);
+    --content-px: clamp(1.5rem, 2.5vw, 3rem);
+
     /* 문서 상태 색상 */
     --status-draft: 217.2 32.6% 50%;
     --status-writing: 47.9 95.8% 53.1%;

@@ -7,14 +7,12 @@
  * - 스와이프 제스처 지원
  */
 
-import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { useUIStore } from '@/stores';
 import { useSwipe } from '@/hooks';
 import { MobileNav } from './MobileNav';
 import { MobileDrawer } from './MobileDrawer';
-
-// 컴포넌트 lazy import
-import type { ReactNode } from 'react';
+import { MobileSettingsView } from '@/components/settings/MobileSettingsView';
 
 interface MobileLayoutProps {
   /** 좌측 패널 (구조/세계관) */
@@ -26,35 +24,27 @@ interface MobileLayoutProps {
 }
 
 export function MobileLayout({ leftPanel, mainContent, header }: MobileLayoutProps) {
-  const { appMode, leftPanelTab } = useUIStore();
-
-  // 드로어 상태
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [drawerContent, setDrawerContent] = useState<'structure' | 'world' | null>(null);
-
-  // 현재 뷰 결정
-  const currentView = appMode === 'agent' ? 'agent' : 'writing';
+  const {
+    leftPanelTab,
+    isMobileDrawerOpen,
+    isMobileSettingsOpen,
+    openMobileDrawer,
+    closeMobileDrawer,
+  } = useUIStore();
 
   // 스와이프로 드로어 열기
   const swipeHandlers = useSwipe({
     onSwipeRight: () => {
-      if (currentView === 'writing' || currentView === 'agent') {
-        setDrawerContent(leftPanelTab);
-        setIsDrawerOpen(true);
+      if (!isMobileSettingsOpen) {
+        openMobileDrawer(leftPanelTab);
       }
     },
     onSwipeLeft: () => {
-      if (isDrawerOpen) {
-        setIsDrawerOpen(false);
+      if (isMobileDrawerOpen) {
+        closeMobileDrawer();
       }
     },
   });
-
-  // 드로어 닫기
-  const handleCloseDrawer = () => {
-    setIsDrawerOpen(false);
-    setTimeout(() => setDrawerContent(null), 300); // 애니메이션 후 정리
-  };
 
   return (
     <div
@@ -70,15 +60,15 @@ export function MobileLayout({ leftPanel, mainContent, header }: MobileLayoutPro
 
       {/* 메인 콘텐츠 영역 */}
       <main className="flex-1 overflow-hidden pb-16">
-        {mainContent}
+        {isMobileSettingsOpen ? <MobileSettingsView /> : mainContent}
       </main>
 
       {/* 좌측 드로어 (구조/세계관) */}
       <MobileDrawer
-        isOpen={isDrawerOpen}
-        onClose={handleCloseDrawer}
+        isOpen={isMobileDrawerOpen}
+        onClose={closeMobileDrawer}
         position="left"
-        title={drawerContent === 'structure' ? '작품 구조' : drawerContent === 'world' ? '세계관' : ''}
+        title={leftPanelTab === 'structure' ? '작품 구조' : '세계관'}
       >
         {leftPanel}
       </MobileDrawer>

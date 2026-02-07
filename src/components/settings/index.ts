@@ -3,3 +3,4 @@
  */
 
 export { ThemeSelector } from './ThemeSelector';
+export { MobileSettingsView } from './MobileSettingsView';

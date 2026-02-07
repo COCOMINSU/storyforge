@@ -58,6 +58,12 @@ interface UIState {
 
   /** 포커스 모드 (패널 숨김) */
   isFocusMode: boolean;
+
+  /** 모바일 드로어 열림 상태 */
+  isMobileDrawerOpen: boolean;
+
+  /** 모바일 설정 화면 열림 상태 */
+  isMobileSettingsOpen: boolean;
 }
 
 interface UIActions {
@@ -111,14 +117,39 @@ interface UIActions {
 
   /** 포커스 모드 설정 */
   setFocusMode: (enabled: boolean) => void;
+
+  /** 모바일 드로어 열기 (탭 지정) */
+  openMobileDrawer: (tab: LeftPanelTab) => void;
+
+  /** 모바일 드로어 닫기 */
+  closeMobileDrawer: () => void;
+
+  /** 모바일 설정 화면 열기/닫기 */
+  setMobileSettingsOpen: (open: boolean) => void;
 }
 
 type UIStore = UIState & UIActions;
 
-/** 패널 최소/최대 너비 */
+/** 패널 최소 너비 */
 const PANEL_MIN_WIDTH = 240;
-const PANEL_MAX_WIDTH = 480;
-const PANEL_DEFAULT_WIDTH = 280;
+
+/** 화면 크기에 따른 패널 기본 너비 */
+function getResponsivePanelDefault(): number {
+  if (typeof window === 'undefined') return 280;
+  const vw = window.innerWidth;
+  if (vw >= 1920) return 320;
+  if (vw >= 1440) return 300;
+  return 280;
+}
+
+/** 화면 크기에 따른 패널 최대 너비 */
+function getResponsivePanelMax(): number {
+  if (typeof window === 'undefined') return 480;
+  const vw = window.innerWidth;
+  if (vw >= 1920) return 560;
+  if (vw >= 1440) return 520;
+  return 480;
+}
 
 /**
  * UI 스토어
@@ -142,15 +173,17 @@ export const useUIStore = create<UIStore>()(
         appMode: 'writing',
         isLeftPanelOpen: true,
         leftPanelTab: 'structure',
-        leftPanelWidth: PANEL_DEFAULT_WIDTH,
+        leftPanelWidth: getResponsivePanelDefault(),
         isRightPanelOpen: false,
-        rightPanelWidth: PANEL_DEFAULT_WIDTH,
+        rightPanelWidth: getResponsivePanelDefault(),
         activeModal: null,
         modalData: null,
         theme: 'dark-default',
         toasts: [],
         isFullscreen: false,
         isFocusMode: false,
+        isMobileDrawerOpen: false,
+        isMobileSettingsOpen: false,
 
         // 앱 모드
         setAppMode: (mode) => {
@@ -179,7 +212,7 @@ export const useUIStore = create<UIStore>()(
         setLeftPanelWidth: (width) => {
           const clampedWidth = Math.min(
             Math.max(width, PANEL_MIN_WIDTH),
-            PANEL_MAX_WIDTH
+            getResponsivePanelMax()
           );
           set({ leftPanelWidth: clampedWidth });
         },
@@ -196,7 +229,7 @@ export const useUIStore = create<UIStore>()(
         setRightPanelWidth: (width) => {
           const clampedWidth = Math.min(
             Math.max(width, PANEL_MIN_WIDTH),
-            PANEL_MAX_WIDTH
+            getResponsivePanelMax()
           );
           set({ rightPanelWidth: clampedWidth });
         },
@@ -293,6 +326,28 @@ export const useUIStore = create<UIStore>()(
             isFocusMode: enabled,
             isLeftPanelOpen: !enabled,
             isRightPanelOpen: false,
+          });
+        },
+
+        // 모바일 드로어
+        openMobileDrawer: (tab) => {
+          set({
+            isMobileDrawerOpen: true,
+            leftPanelTab: tab,
+            appMode: 'writing',
+            isMobileSettingsOpen: false,
+          });
+        },
+
+        closeMobileDrawer: () => {
+          set({ isMobileDrawerOpen: false });
+        },
+
+        // 모바일 설정
+        setMobileSettingsOpen: (open) => {
+          set({
+            isMobileSettingsOpen: open,
+            isMobileDrawerOpen: false,
           });
         },
       }),

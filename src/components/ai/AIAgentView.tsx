@@ -50,7 +50,8 @@ export function AIAgentView() {
 
       {/* 메시지 영역 */}
       <div className="flex-1 overflow-y-auto scroll-touch">
-        <div className={`mx-auto max-w-4xl ${isMobile ? 'px-3 py-4' : 'px-4 py-6'}`}>
+        <div className={isMobile ? 'mx-auto max-w-4xl px-3 py-4' : 'mx-auto py-6'}
+             style={isMobile ? undefined : { maxWidth: 'var(--chat-max-w)', paddingInline: 'var(--content-px)' }}>
           {messages.length === 0 ? (
             <EmptyState isMobile={isMobile} />
           ) : (
@@ -72,7 +73,8 @@ export function AIAgentView() {
 
       {/* 입력 영역 - 모바일에서 키보드 대응 */}
       <div className={`border-t border-border bg-sidebar/50 ${isMobile ? 'safe-area-bottom' : ''}`}>
-        <div className={`mx-auto max-w-4xl ${isMobile ? 'px-3 py-2' : 'px-4 py-4'}`}>
+        <div className={isMobile ? 'mx-auto max-w-4xl px-3 py-2' : 'mx-auto py-4'}
+             style={isMobile ? undefined : { maxWidth: 'var(--chat-max-w)', paddingInline: 'var(--content-px)' }}>
           <ChatInput
             onSend={handleSend}
             disabled={!currentProject}

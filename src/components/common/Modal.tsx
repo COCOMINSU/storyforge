@@ -102,6 +102,7 @@ export function Modal({
         className={cn(
           'relative z-10 w-full rounded-lg bg-card shadow-xl',
           'animate-in fade-in-0 zoom-in-95',
+          'max-h-[85vh] flex flex-col',
           SIZE_CLASSES[size],
           'mx-4'
         )}
@@ -119,7 +120,7 @@ export function Modal({
         </div>
 
         {/* 본문 */}
-        <div className="px-6 py-4">{children}</div>
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">{children}</div>
 
         {/* 닫기 버튼 */}
         <button

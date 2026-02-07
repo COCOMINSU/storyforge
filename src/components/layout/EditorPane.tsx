@@ -8,6 +8,7 @@
 
 import { lazy, Suspense } from 'react';
 import { useDocumentStore, useEditorStore, useUIStore } from '@/stores';
+import { useIsMobile } from '@/hooks';
 
 // TipTap 에디터 lazy loading (가장 무거운 의존성)
 const TipTapEditor = lazy(() =>
@@ -32,6 +33,7 @@ function EditorSkeleton() {
 
 export function EditorPane() {
   const { selectedSceneId, scenes } = useDocumentStore();
+  const isMobile = useIsMobile();
 
   const selectedScene = scenes.find((s) => s.id === selectedSceneId);
 
@@ -57,9 +59,11 @@ export function EditorPane() {
             씬을 선택하세요
           </h3>
           <p className="text-sm text-muted-foreground">
-            좌측 패널에서 편집할 씬을 선택하거나
-            <br />
-            새로운 씬을 추가하세요.
+            {isMobile ? (
+              <>하단의 <strong>구조</strong> 탭을 눌러 편집할 씬을 선택하세요.</>
+            ) : (
+              <>좌측 패널에서 편집할 씬을 선택하거나<br />새로운 씬을 추가하세요.</>
+            )}
           </p>
         </div>
       </div>
@@ -73,7 +77,7 @@ export function EditorPane() {
 
       {/* 에디터 본문 */}
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-6 py-8">
+        <div className="mx-auto py-8" style={{ maxWidth: 'var(--editor-max-w)', paddingInline: 'var(--content-px)' }}>
           <Suspense fallback={<EditorSkeleton />}>
             <TipTapEditor sceneId={selectedScene.id} />
           </Suspense>

@@ -33,7 +33,7 @@ export function WelcomeScreen() {
 
       {/* 메인 컨텐츠 */}
       <main className="flex flex-1 flex-col items-center justify-center p-8">
-        <div className="w-full max-w-2xl">
+        <div className="w-full max-w-2xl xl:max-w-3xl">
           {/* 로고/타이틀 */}
           <div className="mb-8 text-center">
             <h2 className="mb-2 text-4xl font-bold text-foreground">
@@ -45,10 +45,10 @@ export function WelcomeScreen() {
           </div>
 
           {/* 액션 버튼 */}
-          <div className="mb-8 flex justify-center gap-4">
+          <div className="mb-8 flex flex-col sm:flex-row justify-center gap-4">
             <button
               onClick={() => openModal('new-project')}
-              className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90"
+              className="flex items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -57,7 +57,7 @@ export function WelcomeScreen() {
             </button>
             <button
               onClick={() => openModal('project-list')}
-              className="flex items-center gap-2 rounded-lg border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-accent"
+              className="flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-accent"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />

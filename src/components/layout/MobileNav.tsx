@@ -25,12 +25,14 @@ export function MobileNav() {
     appMode,
     setAppMode,
     leftPanelTab,
-    setLeftPanelTab,
-    openModal,
+    isMobileSettingsOpen,
+    openMobileDrawer,
+    setMobileSettingsOpen,
+    closeMobileDrawer,
   } = useUIStore();
 
   // 현재 활성 뷰 결정
-  const activeView = appMode === 'agent' ? 'agent' : leftPanelTab;
+  const activeView = isMobileSettingsOpen ? 'settings' : appMode === 'agent' ? 'agent' : leftPanelTab;
 
   const navItems: MobileNavItem[] = [
     {
@@ -42,8 +44,7 @@ export function MobileNav() {
         </svg>
       ),
       action: () => {
-        setAppMode('writing');
-        setLeftPanelTab('structure');
+        openMobileDrawer('structure');
       },
       isActive: activeView === 'structure',
     },
@@ -56,8 +57,7 @@ export function MobileNav() {
         </svg>
       ),
       action: () => {
-        setAppMode('writing');
-        setLeftPanelTab('world');
+        openMobileDrawer('world');
       },
       isActive: activeView === 'world',
     },
@@ -71,6 +71,8 @@ export function MobileNav() {
       ),
       action: () => {
         setAppMode('agent');
+        setMobileSettingsOpen(false);
+        closeMobileDrawer();
       },
       isActive: activeView === 'agent',
     },
@@ -84,9 +86,10 @@ export function MobileNav() {
       ),
       action: () => {
         setAppMode('writing');
-        setLeftPanelTab('structure');
+        setMobileSettingsOpen(false);
+        closeMobileDrawer();
       },
-      isActive: appMode === 'writing' && activeView === 'structure',
+      isActive: appMode === 'writing' && !isMobileSettingsOpen && activeView !== 'agent',
     },
     {
       id: 'settings',
@@ -98,9 +101,9 @@ export function MobileNav() {
         </svg>
       ),
       action: () => {
-        openModal('settings');
+        setMobileSettingsOpen(true);
       },
-      isActive: false,
+      isActive: isMobileSettingsOpen,
     },
   ];
 
