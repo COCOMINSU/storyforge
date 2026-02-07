@@ -219,25 +219,34 @@ export const useProjectStore = create<ProjectStore>()(
           const localIds = new Set(localProjects.map(p => p.id));
 
           // 3. 로컬에 없는 원격 프로젝트 다운로드
-          const downloadPromises: Promise<void>[] = [];
+          const downloadTasks: { title: string; promise: Promise<{ success: boolean; error?: string }> }[] = [];
 
           for (const remoteProject of remoteProjects) {
             if (remoteProject.id && !localIds.has(remoteProject.id)) {
               console.log('[ProjectStore] 새 원격 프로젝트 다운로드:', remoteProject.title);
-              downloadPromises.push(
-                downloadProject(remoteProject.id).then(result => {
-                  if (!result.success) {
-                    console.warn('[ProjectStore] 다운로드 실패:', remoteProject.title, result.error);
-                  }
-                })
-              );
+              downloadTasks.push({
+                title: remoteProject.title || remoteProject.id,
+                promise: downloadProject(remoteProject.id),
+              });
             }
           }
 
-          // 모든 다운로드 완료 대기
-          if (downloadPromises.length > 0) {
-            await Promise.all(downloadPromises);
-            console.log('[ProjectStore] 원격 프로젝트 다운로드 완료:', downloadPromises.length);
+          // 모든 다운로드 완료 대기 (개별 실패 허용)
+          if (downloadTasks.length > 0) {
+            const results = await Promise.allSettled(downloadTasks.map(t => t.promise));
+            let successCount = 0;
+            results.forEach((result, i) => {
+              const title = downloadTasks[i].title;
+              if (result.status === 'fulfilled' && result.value.success) {
+                successCount++;
+              } else {
+                const reason = result.status === 'rejected'
+                  ? result.reason?.message || result.reason
+                  : result.value.error;
+                console.warn('[ProjectStore] 다운로드 실패:', title, reason);
+              }
+            });
+            console.log(`[ProjectStore] 원격 프로젝트 다운로드 완료: ${successCount}/${downloadTasks.length}`);
           }
 
           // 4. 프로젝트 목록 새로고침
